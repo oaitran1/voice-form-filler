@@ -1,0 +1,88 @@
+# OSHA Form 301 — which story fact goes in which box; written by hand, checked box by box.
+id: osha_301
+title: OSHA 301 Injury and Illness Incident Report
+pdf: osha_301.pdf
+applies_when: [Injury, Illness, Fatality]
+status: approved
+boxes:
+  - {box: 301 Full name, fact: [person_first_name, person_middle_initial, person_last_name]}
+  - {box: 301 Address Street, fact: person_street}
+  - {box: 301 Address City, fact: person_city}
+  - {box: 301 Address State, fact: person_state}
+  - {box: 301 Address Zip, fact: person_zip}
+  - {box: 301 DOB, fact: person_dob}
+  - {box: 301 Date Hired, fact: person_hire_date}
+  - {box: 301 Gender, fact: person_gender}
+  - {box: 301 Name of Doctor, fact: doctor_name}
+  - {box: 301 Facility Name, fact: facility_name}
+  - {box: 301 Facility Address Street, fact: facility_street}
+  - {box: 301 Facility Address City, fact: facility_city}
+  - {box: 301 Facility Address State, fact: facility_state}
+  - {box: 301 Facility Address Zip, fact: facility_zip}
+  - {box: 301 ER, fact: er_visit}
+  - {box: 301 Hospitalized, fact: hospitalized}
+  - {box: 301 Date of Injury or Illness, fact: incident_date}
+  - {box: 301 Time employee began work, fact: work_start_time}
+  - {box: 301 Time Employee Began Work AMPM, fact: work_start_ampm}
+  - {box: 301 Time of event, fact: incident_time}
+  - {box: 301 Time of Event AMPM, fact: incident_ampm}
+  - {box: 301 Activity Prior to Event, fact: activity_before}
+  - {box: 301 What Happened, fact: what_happened}
+  - {box: 301 Describe Injury or Illness, fact: injury_description}
+  - {box: 301 What Harmed Employee, fact: injury_cause}
+  - {box: 301 Death Date, fact: death_date}
+  - {box: 301 Completed by, fact: preparer_name}
+  - {box: 301 Title, fact: preparer_title}
+  - {box: 301 Phone, fact: preparer_phone}
+  - {box: 301 Date, fact: today}
+
+# Old filled PDFs → Excel (uv run export-excel): one column per box on the printed page, in the paper's
+# order, under the paper's own section titles. Written by hand 2026-10-20 from the blank form.
+# The "Completed by" block has no printed title; it is named after its first box. Reset / Add a Form Page are buttons.
+excel:
+  sheet: OSHA 301
+  # Pages added with "Add a Form Page" hold another report; Acrobat names their boxes P<page>.301t.<box>
+  copies: '^P(?P<page>\d+)\.301t\.(?P<box>.+)$'
+  copy_prefix: '301 '
+  sections:
+    - title: Completed by
+      columns:
+        - {box: 301 Completed by, label: Completed by}
+        - {box: 301 Title, label: Title}
+        - {box: 301 Phone, label: Phone}
+        - {box: 301 Date, label: Date}
+    - title: Information about the employee
+      columns:
+        - {box: 301 Full name, label: 1) Full name}
+        - {box: 301 Address Street, label: 2) Street}
+        - {box: 301 Address City, label: City}
+        - {box: 301 Address State, label: State}
+        - {box: 301 Address Zip, label: ZIP}
+        - {box: 301 DOB, label: 3) Date of birth}
+        - {box: 301 Date Hired, label: 4) Date hired}
+        - {box: 301 Gender, label: 5) Male / Female}
+    - title: Information about the physician or other health care professional
+      columns:
+        - {box: 301 Name of Doctor, label: 6) Name of physician or other health care professional}
+        - {box: 301 Facility Name, label: 7) Facility}
+        - {box: 301 Facility Address Street, label: Street}
+        - {box: 301 Facility Address City, label: City}
+        - {box: 301 Facility Address State, label: State}
+        - {box: 301 Facility Address Zip, label: ZIP}
+        - {box: 301 ER, label: '8) Was employee treated in an emergency room?'}
+        - {box: 301 Hospitalized, label: '9) Was employee hospitalized overnight as an in-patient?'}
+    - title: Information about the case
+      columns:
+        - {box: 301 Case Number, label: 10) Case number from the Log}
+        - {box: 301 Date of Injury or Illness, label: 11) Date of injury or illness}
+        - {box: 301 Time employee began work, label: 12) Time employee began work}
+        - {box: 301 Time Employee Began Work AMPM, label: 12) AM / PM}
+        - {box: 301 Time of event, label: 13) Time of event}
+        - box: 301 Time of Event AMPM
+          label: 13) AM / PM
+          words: {/Unsure: Time cannot be determined}
+        - {box: 301 Activity Prior to Event, label: '14) What was the employee doing just before the incident occurred?'}
+        - {box: 301 What Happened, label: '15) What happened?'}
+        - {box: 301 Describe Injury or Illness, label: '16) What was the injury or illness?'}
+        - {box: 301 What Harmed Employee, label: '17) What object or substance directly harmed the employee?'}
+        - {box: 301 Death Date, label: 18) If the employee died, date of death}

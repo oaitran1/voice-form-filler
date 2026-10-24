@@ -1,0 +1,58 @@
+title: Forklift — clinic visit, afternoon
+hints: Ana R. Lopez, Sioux Falls, Tom Becker, Jane Ortiz, Sanford Clinic, Ken Moore, Industrial Way
+script: >
+  This report is by Jane Ortiz, Warehouse Supervisor, phone 605-555-0100.
+  This is an injury report. The injured worker is Ana R. Lopez, female, a warehouse associate.
+  She works full time, 40 hours a week. Her phone number is 605-555-0142.
+  She lives at 18 Pine Avenue, Sioux Falls, South Dakota, 57104.
+  Her date of birth is July 22nd, 1985, and she was hired on February 14th, 2019.
+  On September 15th, 2026, she started work at 1 p.m.
+  At about 4:40 in the afternoon she was stacking boxes in the warehouse at 200 Industrial Way, Sioux Falls,
+  when a forklift backed into a pallet and a box fell on her left foot. It happened on the employer's premises.
+  Safety equipment was provided, and she was wearing it.
+  The witness was Tom Becker. She reported it to her supervisor, Jane Ortiz, on September 15th, 2026.
+  She went to Sanford Clinic, 1305 West 18th Street, Sioux Falls, South Dakota, 57105,
+  where Doctor Ken Moore treated her. She did not go to the emergency room and was not kept overnight.
+facts:
+  preparer_name: Jane Ortiz
+  preparer_title: Warehouse Supervisor
+  preparer_phone: 605-555-0100
+  incident_types: Injury
+  person_first_name: Ana
+  person_middle_initial: R.
+  person_last_name: Lopez
+  person_gender: Female
+  person_job_title: warehouse associate
+  person_employment_type: Full time
+  person_hours_per_week: "40"
+  person_phone: 605-555-0142
+  person_street: 18 Pine Avenue
+  person_city: Sioux Falls
+  person_state: SD
+  person_zip: "57104"
+  person_dob: 07/22/1985
+  person_hire_date: 02/14/2019
+  incident_date: 09/15/2026
+  work_start_time: "1:00"
+  work_start_ampm: PM
+  incident_time: "4:40"
+  incident_ampm: PM
+  incident_street: 200 Industrial Way
+  incident_city: Sioux Falls
+  incident_state: SD
+  on_premises: "Yes"
+  safety_equipment_provided: "Yes"
+  safety_equipment_used: "Yes"
+  body_parts: left foot
+  witness_names: Tom Becker
+  reported_to: Jane Ortiz
+  reported_date: 09/15/2026
+  treatment_type: Doctor or clinic
+  er_visit: "No"
+  hospitalized: "No"
+  doctor_name: Ken Moore
+  facility_name: Sanford Clinic
+  facility_street: 1305 West 18th Street
+  facility_city: Sioux Falls
+  facility_state: SD
+  facility_zip: "57105"

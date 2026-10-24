@@ -1,0 +1,17 @@
+data/
+records/
+data_tracker/
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+dist/
+.DS_Store
+*.xlsx
+# your recordings and filled forms from live tests
+live_test/results/
+# private working notes — stay on this computer
+docs/HANDOFF.md
+docs/DESIGN.md

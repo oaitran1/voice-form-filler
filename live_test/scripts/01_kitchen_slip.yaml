@@ -1,0 +1,45 @@
+title: Kitchen slip — emergency room
+hints: Sam Park, Marcus Hill, Greenville, Lisa Park, Greenville Memorial Hospital, Grove Road
+script: >
+  This report is by Sam Park, Kitchen Manager, phone 864-555-0199.
+  This is an injury report. The injured worker is Marcus Hill, male, a line cook.
+  He lives at 42 Oak Street, Greenville, South Carolina, 29601.
+  His date of birth is March 5th, 1990, and he was hired on June 1st, 2022.
+  On October 3rd, 2026, he started work at 7 a.m.
+  At about 9:15 in the morning he was carrying a tray of dishes in the kitchen when he slipped on a wet floor
+  and fell, spraining his right wrist. It happened on the employer's premises.
+  He was taken to the emergency room at Greenville Memorial Hospital, 701 Grove Road, Greenville,
+  South Carolina, 29605, where Doctor Lisa Park treated him. He was not kept overnight.
+# The right answers, written the way the forms want them. Anything not listed should stay blank.
+facts:
+  preparer_name: Sam Park
+  preparer_title: Kitchen Manager
+  preparer_phone: 864-555-0199
+  incident_types: Injury
+  person_first_name: Marcus
+  person_last_name: Hill
+  person_gender: Male
+  person_job_title: line cook
+  person_street: 42 Oak Street
+  person_city: Greenville
+  person_state: SC
+  person_zip: "29601"
+  person_dob: 03/05/1990
+  person_hire_date: 06/01/2022
+  incident_date: 10/03/2026
+  work_start_time: "7:00"
+  work_start_ampm: AM
+  incident_time: "9:15"
+  incident_ampm: AM
+  on_premises: "Yes"
+  body_parts: right wrist
+  injury_nature: sprain
+  treatment_type: Emergency room
+  er_visit: "Yes"
+  hospitalized: "No"
+  doctor_name: Lisa Park
+  facility_name: Greenville Memorial Hospital
+  facility_street: 701 Grove Road
+  facility_city: Greenville
+  facility_state: SC
+  facility_zip: "29605"

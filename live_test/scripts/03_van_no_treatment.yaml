@@ -1,0 +1,26 @@
+title: Van rear-ended — no treatment, no reporter named (doctor, hospital and 'Completed by' boxes stay blank)
+hints: Sam Ortiz, Rapid City, Main Street
+script: >
+  This is an incident report about a vehicle accident. The driver is Sam Ortiz, male, a delivery driver.
+  On August 20th, 2026, he started work at 8 a.m.
+  At about 11:30 in the morning he was driving the company van on Main Street in Rapid City, South Dakota,
+  when another car rear-ended him at a stop light. His neck was sore.
+  He did not need any treatment. He did not go to a doctor, a clinic, the emergency room or a hospital.
+facts:
+  incident_types: Injury; Vehicle
+  person_first_name: Sam
+  person_last_name: Ortiz
+  person_gender: Male
+  person_job_title: delivery driver
+  incident_date: 08/20/2026
+  work_start_time: "8:00"
+  work_start_ampm: AM
+  incident_time: "11:30"
+  incident_ampm: AM
+  incident_street: Main Street
+  incident_city: Rapid City
+  incident_state: SD
+  body_parts: neck
+  treatment_type: None
+  er_visit: "No"
+  hospitalized: "No"

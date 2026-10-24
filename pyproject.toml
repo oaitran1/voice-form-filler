@@ -1,0 +1,29 @@
+[project]
+name = "voice-form-filler"
+version = "0.1.0"
+description = "Tell an incident story once; fill safety forms (OSHA 301, SD first report of injury) offline; move old PDFs to Excel"
+requires-python = ">=3.12"
+dependencies = [
+    "cryptography>=50.0.2",
+    "faster-whisper>=1.1.0; sys_platform != 'darwin' or platform_machine != 'arm64'",  # speech-to-text off Apple Silicon
+    "mlx-whisper>=0.4.3; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "numpy>=2.5.3",
+    "ollama>=0.6.2",
+    "openpyxl>=3.1.5",
+    "pypdf>=6.19.0",
+    "pyyaml>=6.0.3",
+    "sounddevice>=0.5.6",
+]
+
+[project.scripts]
+record = "vff.cli.record:main"                # talk → forms filled, saved, in the Excel file, opened
+make-report = "vff.cli.make_report:main"      # a voice memo / video / text file → the same
+add-old-pdfs = "vff.cli.add_old_pdfs:main"    # old filled PDFs → records/old_pdfs + the workbook
+live-test = "vff.cli.live_test:main"          # read a script aloud → forms filled → every box checked
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vff"]

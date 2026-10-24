@@ -1,0 +1,249 @@
+# SD first report of injury — map checked box by box 2026-10-06 (Oai approved), promoted to live 2026-10-20.
+# Left blank on purpose: education, both counties, multiple-injury codes, hidden name box, the insurer's claim-office / insurance-provider section.
+id: sd_froi
+title: South Dakota Employer's First Report of Injury
+pdf: sd_froi.pdf
+applies_when:
+- Injury
+- Fatality
+status: approved
+boxes:
+- box: Item.BPI
+  fact: body_parts
+- box: Item.NOI
+  fact: injury_nature
+- box: Item.COI
+  fact: injury_cause
+- box: Item.ReqSSN
+  by_hand: true
+- box: Item.DOBDate
+  fact: person_dob
+- box: Item.Gender
+  fact: person_gender
+  states:
+    Male: /M
+    Female: /F
+- box: Item.LastName
+  fact: person_last_name
+- box: Item.FirstName
+  fact: person_first_name
+- box: Item.MidI
+  fact: person_middle_initial
+- box: Item.Address
+  fact: person_street
+- box: Item.EmployeeCity
+  fact: person_city
+- box: Item.EmployeeState
+  fact: person_state
+- box: Item.EmployeeReqPostalcode
+  fact: person_zip
+- box: Item.EmployeePhone
+  fact: person_phone
+- box: Item.DOI
+  fact: incident_date
+- box: Item.InjTime
+  fact: incident_time
+- box: Item.AmPm1
+  fact: incident_ampm
+- box: Item.FatDate
+  fact: death_date
+- box: Item.SafetyProv
+  fact: safety_equipment_provided
+- box: Item.BegWorkTime
+  fact: work_start_time
+- box: Item.AmPm2
+  fact: work_start_ampm
+- box: Item.SafetyUsed
+  fact: safety_equipment_used
+- box: Item.DateReturnToWork
+  fact: return_to_work_date
+- box: Item.PremisesYN
+  fact: on_premises
+  states:
+    'Yes': /Y
+    'No': /N
+- box: Item.InjLocate
+  fact: incident_street
+- box: Item.ReqDate
+  fact: reported_date
+- box: Item.InjReportedTo
+  fact: reported_to
+- box: Item.Witness
+  fact: witness_names
+- box: Item.TypeTreat
+  fact: treatment_type
+  states:
+    None: /No Treatment
+    First aid: /On Site
+    Doctor or clinic: /Clinic
+    Emergency room: /ER
+    Hospitalized: /Hospital
+- box: Item.TreatLocate
+  fact: facility_name
+- box: Item.TreatAddress
+  fact: facility_street
+- box: Item.TreatCity
+  fact: facility_city
+- box: Item.TreatState
+  fact: facility_state
+- box: Item.TreatPostalcode
+  fact: facility_zip
+- box: Item.TreatPhone
+  fact: facility_phone
+- box: Item.NumEmp
+  fact: employer_employee_count
+- box: Item.EmployerCity
+  fact: employer_city
+- box: Item.EmployerState
+  fact: employer_state
+- box: Item.ReqPhone
+  fact: employer_phone
+- box: Item.EmployerReqPostalcode
+  fact: employer_zip
+- box: Item.EmpType
+  fact: person_employment_term
+  states:
+    Permanent: /Regular
+    Temporary: /Temporary
+- box: Item.EmpStatus
+  fact: person_employment_type
+  states:
+    Full time: /Full Time
+    Part time: /Part Time
+- box: Item.HireDate
+  fact: person_hire_date
+- box: Item.Position
+  fact: person_job_title
+- box: Item.HoursPerWeek
+  fact: person_hours_per_week
+- box: Item.CurrentWage
+  fact: person_wage
+- box: Item.EmployerFedID
+  fact: employer_fein
+- box: Item.OptMultiline
+  fact:
+  - what_happened
+  - injury_description
+- box: Item.DBA
+  fact: employer_name
+- box: Item.EmployerMailAddress
+  fact: employer_street
+- box: Item.SigDate
+  fact: today
+- box: Item.SigDate2
+  fact: today
+
+# Old filled PDFs → Excel (uv run export-excel): one column per box on the printed page, in the paper's
+# order, under the paper's own section titles. Written by hand 2026-10-20 from the blank form.
+# All boxes are on page 2.
+excel:
+  sheet: SD First Report of Injury
+  sections:
+    - title: EMPLOYEE
+      columns:
+        - {box: Item.ReqSSN, label: SSN}
+        - {box: Item.DOBDate, label: Date of Birth}
+        - box: Item.Gender
+          label: Gender
+          words: {/M: Male, /F: Female}
+        - {box: Item.NumDepend, label: Dependents}
+        - {box: Item.LastName, label: Name (Last)}
+        - {box: Item.FirstName, label: (First)}
+        - {box: Item.MidI, label: (Middle initial)}
+        - {box: Item.Address, label: Mailing Address}
+        - {box: Item.EmployeeCity, label: City}
+        - {box: Item.EmployeeState, label: State}
+        - {box: Item.EmployeeReqPostalcode, label: Zip}
+        - {box: Item.EmployeePhone, label: Telephone No.}
+        - {box: Item.SigDate, label: Employee signature date}
+        - {box: Item.Educate, label: Education}
+    - title: INJURY / TREATMENT
+      columns:
+        - {box: Item.DOI, label: Date of Injury}
+        - {box: Item.InjTime, label: Time of Injury}
+        - {box: Item.AmPm1, label: Time of Injury a.m. / p.m.}
+        - {box: Item.FatDate, label: Fatality Date (if applicable)}
+        - {box: Item.OptCounty, label: County Where Injury Occurred}
+        - box: Item.SafetyProv
+          label: Was Safety Equipment Provided?
+          words: {/Y: 'Yes', /N: 'No'}
+        - {box: Item.BegWorkTime, label: Time Work Day Began on Date of Injury}
+        - {box: Item.AmPm2, label: Time Work Day Began a.m. / p.m.}
+        - box: Item.SafetyUsed
+          label: Was Safety Equipment Used?
+          words: {/Y: 'Yes', /N: 'No'}
+        - {box: Item.DateReturnToWork, label: Date Returned to Work (if applicable)}
+        - box: Item.PremisesYN
+          label: Did Injury Occur on Employer Premises?
+          words: {/Y: 'Yes', /N: 'No'}
+        - {box: Item.InjLocate, label: Address or Location of Injury}
+        - {box: Item.OptMultiline, label: Description of Injury}
+        - {box: Item.ReqDate, label: Date Employer Notified of Injury}
+        - {box: Item.InjReportedTo, label: Injury Reported to}
+        - {box: Item.Witness, label: Witness}
+        - {box: Item.BPI, label: Body Part Injured}
+        # the four "code 90, Multiple Injury" lines, top to bottom as printed (the form names the 3rd line ...4)
+        - {box: Item.BPIForMultiple, label: Multiple Injury body part (line 1)}
+        - {box: Item.BPIForMultiple2, label: Multiple Injury body part (line 2)}
+        - {box: Item.BPIForMultiple4, label: Multiple Injury body part (line 3)}
+        - {box: Item.BPIForMultiple3, label: Multiple Injury body part (line 4)}
+        - {box: Item.NOI, label: Nature of Injury}
+        - {box: Item.COI, label: Cause of Injury}
+        - box: Item.TypeTreat
+          label: Type of Treatment
+          words: {/On Site: On-Site Treatment, /ER: Emergency Room, /Hospital: Hospitalization}
+        - {box: Item.TreatLocate, label: 'Provider: Medical Practitioner, Clinic or Hospital Name'}
+        - {box: Item.TreatAddress, label: 'Provider: Mailing Address'}
+        - {box: Item.TreatCity, label: 'Provider: City'}
+        - {box: Item.TreatState, label: 'Provider: State'}
+        - {box: Item.TreatPostalcode, label: 'Provider: Zip'}
+        - {box: Item.TreatPhone, label: 'Provider: Telephone No.'}
+    - title: EMPLOYER/EMPLOYMENT INFORMATION
+      columns:
+        - {box: Item.EmployerFedID, label: Federal ID No.}
+        - {box: Item.NumEmp, label: '# Employees'}
+        - {box: Item.DBA, label: Employer Name (DBA)}
+        - {box: Item.EmployerMailAddress, label: Mailing Address}
+        - {box: Item.EmployerCity, label: City}
+        - {box: Item.EmployerState, label: State}
+        - {box: Item.EmployerReqPostalcode, label: Zip}
+        - {box: Item.ReqPhone, label: Telephone No.}
+        - {box: Item.ReqCounty, label: County Where Employer Located}
+        - {box: Item.SigDate2, label: Employer signature date}
+        - {box: Item.EmpType, label: Employment Type}
+        - {box: Item.EmpStatus, label: Emp. Status}
+        - {box: Item.HireDate, label: Date Employee Hired}
+        - {box: Item.Position, label: Employee’s Position}
+        - {box: Item.TimeInPosition, label: Employee’s Time in Current Position}
+        - {box: Item.HoursPerWeek, label: Employee’s Hours Per Week}
+        - {box: Item.CurrentWage, label: Employee’s Current Wage ($)}
+        - {box: Item.Wage2, label: Wage per}
+    - title: CLAIM OFFICE INFORMATION
+      columns:
+        - {box: Text.ClaimOfficeNAICS, label: NAICS for Employer Being Insured (Nature of Business)}
+        - {box: Text.ClaimOfficeCarrierCode, label: Carrier Code}
+        - {box: Text.ClaimOfficeFEIN, label: FEIN (Claim Office)}
+        - {box: Text.ClaimOffice, label: Claim Office}
+        - {box: Text.ClaimOfficeAddress, label: Claim Office Address}
+        - {box: Text.ClaimOfficeCity, label: City}
+        - {box: Text.ClaimOfficeState, label: State}
+        - {box: Text.ClaimOfficeZip, label: ZipCode}
+        - {box: Text.ClaimOfficePhone, label: Telephone}
+        - {box: Text.ClaimOfficeEmail, label: Email Address}
+        - {box: Text.ClaimOfficeClaimNo, label: 'Claim Office Claim #'}
+        - {box: Text.DateNotified, label: Date Notified}
+        - {box: Text.DateToDOL, label: Date to DLR}
+    - title: UNDERLYING INSURANCE PROVIDER INFORMATION
+      columns:
+        - {box: Text.Checkbox, label: Check if Claim Office is same as Insurance Provider}
+        - {box: Text.InsProvCarrierCode, label: Carrier Code (If applicable)}
+        - {box: Text.InsProvFEIN, label: FEIN (Insurance Provider)}
+        - {box: Text.RepresentedEntityName, label: Represented Entity Name}
+        - {box: Text.InsProvAddress, label: Address}
+        - {box: Text.InsProvCity, label: City}
+        - {box: Text.InsProvState, label: State}
+        - {box: Text.InsProvZip, label: Zip Code}
+        - {box: Text.InsProvPhone, label: Telephone Number}
+        - {box: Text.PolicyNumber, label: Policy Number}
+        - {box: Text.EffectiveDates, label: Effective Dates}
+        - {box: Text.AdjusterContact, label: Adjuster/Contact Person}

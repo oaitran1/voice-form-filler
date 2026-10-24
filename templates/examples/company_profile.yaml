@@ -1,0 +1,9 @@
+# Example company profile — copy to data/profile.yaml and type your own company's details (never spoken, never sent anywhere).
+# Who makes each report is said in the recording, not typed here.
+employer_name: Greenville Kitchen Co.
+employer_street: 100 Commerce Drive
+employer_city: Greenville
+employer_state: South Carolina
+employer_zip: "29601"
+employer_phone: 864 555 0100
+employer_fein: 12-3456789

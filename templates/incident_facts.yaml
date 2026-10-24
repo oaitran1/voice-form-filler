@@ -1,0 +1,138 @@
+# The shared safety facts. One story is turned into these facts once (proof-checked once);
+# every safety form then maps its boxes to them (templates/forms/*.yaml).
+#   group: story   → said in the recording (default)
+#   group: company → typed once into the company profile (the default); used from the recording instead
+#                    only when the company name is said
+id: incident
+title: Safety incident record
+description: A workplace safety incident — who, when, where, what happened, injuries, treatment, witnesses, vehicle, police.
+intro: >
+  Please say, in this order: who you are, with your job title and phone. Who got hurt: their name, job,
+  address, date of birth and date hired. When it happened, with a.m. or p.m. Where it happened, and if it was on
+  the employer's premises. What they were doing, what happened, and the injury and body part. Where they were
+  treated and by which doctor, whether they went to the emergency room, and whether they were kept overnight.
+  Then safety equipment, any witness, and who it was reported to and when.
+rules:
+  - "Written sections (activity_before, what_happened, injury_description, vehicle_damage): refer to people as
+    'the employee', 'the driver' or 'the other driver', never by name — safety forms forbid names there."
+
+fields:
+  # --- when / where / what kind ---
+  - {key: incident_date, label: Date of the incident, kind: date, format: mm/dd/yyyy}
+  - {key: incident_time, label: Time of the incident, kind: time, hint: "Clock time only, e.g. 9:40"}
+  - {key: incident_ampm, label: Incident AM or PM, kind: choice, options: [AM, PM], time_of: incident_time}
+  - {key: work_start_time, label: Time the person began work that day, kind: time}
+  - {key: work_start_ampm, label: Began work AM or PM, kind: choice, options: [AM, PM], time_of: work_start_time}
+  - key: incident_types
+    label: Kind of incident (pick any)
+    kind: multi
+    options: [Injury, Illness, Fatality, Vehicle, Property damage, Near miss, Vandalism, Weather, Other]
+  - {key: incident_street, label: Street address or place where it happened}
+  - {key: incident_city, label: City where it happened}
+  - {key: incident_state, label: State where it happened, format: state}
+  - {key: on_premises, label: "Did it happen on the employer's premises?", kind: choice, options: ["Yes", "No"]}
+
+  # --- what happened ---
+  - {key: activity_before, label: What the person was doing just before, kind: text, hint: "the activity and tools/equipment/material"}
+  - {key: what_happened, label: What happened and how, kind: text}
+  - {key: injury_description, label: The injury or illness and the body part affected, kind: text}
+  - {key: body_parts, label: "Body part(s) injured, e.g. right ankle"}
+  - {key: injury_nature, label: "Kind of injury, e.g. sprain, cut, burn, fracture"}
+  - {key: injury_cause, label: "Object, substance or event that caused the harm, e.g. wet floor, box, forklift"}
+
+  # --- treatment ---
+  - key: treatment_type
+    label: Highest level of treatment
+    kind: choice
+    options: [None, First aid, Doctor or clinic, Emergency room, Hospitalized]
+  - {key: er_visit, label: "Treated in an emergency room?", kind: choice, options: ["Yes", "No"]}
+  - {key: hospitalized, label: "Kept overnight in a hospital as an in-patient?", kind: choice, options: ["Yes", "No"]}
+  - {key: ambulance, label: "Taken by ambulance?", kind: choice, options: ["Yes", "No"]}
+  - {key: doctor_name, label: Doctor or health care professional}
+  - {key: facility_name, label: Clinic or hospital where treated}
+  - {key: facility_street, label: Treatment facility street address}
+  - {key: facility_city, label: Treatment facility city}
+  - {key: facility_state, label: Treatment facility state, format: state}
+  - {key: facility_zip, label: Treatment facility ZIP code, format: zip}
+  - {key: facility_phone, label: Treatment facility phone, format: phone}
+  - {key: safety_equipment_provided, label: "Was safety equipment provided?", kind: choice, options: ["Yes", "No"]}
+  - {key: safety_equipment_used, label: "Was safety equipment used?", kind: choice, options: ["Yes", "No"]}
+
+  # --- people told, witnesses, outcome ---
+  - {key: reported_to, label: Person the incident was reported to}
+  - {key: reported_date, label: Date the employer was told, kind: date, format: mm/dd/yyyy}
+  - {key: witness_names, label: Witness names}
+  - {key: witness_phone, label: Witness phone, format: phone}
+  - {key: return_to_work_date, label: Date the person returned to work, kind: date, format: mm/dd/yyyy}
+  - {key: death_date, label: Date of death (only if the person died), kind: date, format: mm/dd/yyyy}
+
+  # --- the person involved ---
+  - {key: person_first_name, label: First name of the injured person or driver}
+  - {key: person_middle_initial, label: Middle initial, format: initial,
+     hint: "One letter, only if said, e.g. 'Ana R. Lopez' → R. Never the first or last name."}
+  - {key: person_last_name, label: Last name of the injured person or driver}
+  - {key: person_street, label: "Person's home street address"}
+  - {key: person_city, label: "Person's home city"}
+  - {key: person_state, label: "Person's home state", format: state}
+  - {key: person_zip, label: "Person's home ZIP code", format: zip}
+  - {key: person_phone, label: "Person's phone", format: phone}
+  - {key: person_dob, label: "Person's date of birth", kind: date, format: mm/dd/yyyy}
+  - {key: person_gender, label: "Person's gender", kind: choice, options: [Male, Female], hint: Only if explicitly stated.}
+  - {key: person_hire_date, label: Date the person was hired, kind: date, format: mm/dd/yyyy}
+  - {key: person_job_title, label: "Person's job title"}
+  - {key: person_employment_type, label: Full or part time, kind: choice, options: [Full time, Part time]}
+  - {key: person_employment_term, label: Permanent or temporary, kind: choice, options: [Permanent, Temporary]}
+  - {key: person_hours_per_week, label: Hours worked per week}
+  - {key: person_wage, label: Wage and how often paid}
+
+  # --- vehicle (only if a vehicle was involved) ---
+  - {key: vehicle_year, label: Vehicle year}
+  - {key: vehicle_make, label: Vehicle make}
+  - {key: vehicle_model, label: Vehicle model}
+  - {key: vehicle_plate, label: Vehicle license plate}
+  - {key: vehicle_number, label: Company or fleet vehicle number}
+  - {key: vehicle_speed, label: Speed at the time of the accident}
+  - {key: speed_limit, label: Posted speed limit}
+  - {key: airbag_deployed, label: "Did an air bag deploy?", kind: choice, options: ["Yes", "No"]}
+  - {key: seat_belt_worn, label: "Was the driver wearing a seat belt?", kind: choice, options: ["Yes", "No"]}
+  - key: weather
+    label: Weather (pick any)
+    kind: multi
+    options: [Clear, Rainy, Fog, Snow/Ice, Wind, Cloudy, Hail, Sun glare]
+  - key: road
+    label: Road conditions (pick any)
+    kind: multi
+    options: [Paved, Dirt/Gravel, Dry, Wet, Slippery]
+  - key: vehicle_activity
+    label: What the vehicle was doing (pick any)
+    kind: multi
+    options: [Backing, Stopped, Parked, Going straight, Turning, Changing lane, Sliding]
+  - {key: vehicle_damage, label: Damage to the vehicle, kind: text}
+  - {key: other_driver_name, label: "Other driver's name"}
+  - {key: other_vehicle, label: "Other vehicle (year, make, model)"}
+  - {key: other_damage, label: Damage to the other vehicle, kind: text}
+  - {key: other_insurance, label: "Other party's insurance company"}
+
+  # --- police ---
+  - {key: police_called, label: "Were the police called?", kind: choice, options: ["Yes", "No"]}
+  - {key: police_responded, label: "Did the police come?", kind: choice, options: ["Yes", "No"]}
+  - {key: police_department, label: Police department}
+  - {key: officer_name, label: Police officer name}
+  - {key: police_report_number, label: Police report or case number}
+
+  # --- company (profile = default; said company name → the spoken details instead) ---
+  # Who is making this report — it changes from report to report, so it is said, e.g. "This report is by …"
+  - {key: preparer_name, label: "Person making this report (e.g. 'This report is by Sam Park')"}
+  - {key: preparer_title, label: Job title of the person making this report}
+  - {key: preparer_phone, label: Phone of the person making this report, format: phone}
+  - {key: employer_name, label: Employer name, group: company,
+     hint: "Only the company's own name when it is said (e.g. 'We are Acme Plumbing'); never 'the company' or 'the employer'"}
+  - {key: employer_street, label: Employer street address, group: company}
+  - {key: employer_city, label: Employer city, group: company}
+  - {key: employer_state, label: Employer state, group: company, format: state}
+  - {key: employer_zip, label: Employer ZIP code, group: company, format: zip}
+  - {key: employer_phone, label: Employer phone, group: company, format: phone}
+  - {key: employer_fein, label: Employer federal tax ID (FEIN), group: company}
+  - {key: employer_employee_count, label: Number of employees, group: company}
+  - {key: insurer_name, label: "Workers' comp insurance company", group: company}
+  - {key: policy_number, label: Insurance policy number, group: company}
