@@ -10,22 +10,87 @@ You tell what happened — out loud or from a voice memo — and the app does th
 Old filled PDFs can be brought into the same Excel file, so every report, old and new, is in one place.
 Everything runs on your computer; nothing is sent to the internet.
 
-## Set up (once)
+## Step by step
 
-Works on Mac, Windows and Linux. One command does everything: installs the tools, downloads the two AI models
-(about 10 GB, once), installs the app, and checks it works on the 3 test stories. Running it again is safe.
+Works on Mac, Windows and Linux. Needs about 16 GB of memory and 12 GB of free disk space. Fastest on an Apple
+Silicon Mac (M1 or newer) or a computer with an NVIDIA graphics card; on other computers a report can take
+several minutes. Steps 1–4 are done once; steps 5–6 are every report.
 
-| Computer | In a terminal, in this folder |
+### Step 1 — Put the folder on your computer and open a terminal in it
+
+Copy (or unzip) the `voice_form_filler` folder anywhere, e.g. your Desktop. Then open a terminal **in that folder**:
+
+| Computer | How |
+|---|---|
+| **Mac** | Open **Terminal** (Spotlight: ⌘ Space → "Terminal"), type `cd ` (with a space), drag the folder into the window, press Enter. |
+| **Windows** | Open the folder in File Explorer, click the address bar, type `powershell`, press Enter. |
+| **Linux** | Right-click inside the folder → **Open in Terminal**. |
+
+Every command below is typed in this terminal.
+
+### Step 2 — Run the setup (one command)
+
+| Computer | Type this, press Enter |
 |---|---|
 | **Mac or Linux** | `./setup.sh` |
-| **Windows** (PowerShell) | `powershell -ExecutionPolicy Bypass -File setup.ps1` |
+| **Windows** | `powershell -ExecutionPolicy Bypass -File setup.ps1` |
 
-Then open `data/profile.yaml` and type your company's details (it starts with a sample company).
+It installs the tools, downloads the two AI models (about 10 GB — the only time it uses the internet), installs
+the app, then checks itself on 3 test stories. The first time takes a while (mostly the download). It may ask for your
+computer password (to install tools). **Done when you see `✓ Set up.`** If it stops, fix what the message says and
+run it again — anything already done is skipped. (Windows needs `winget`, built into Windows 10/11.)
 
-Needs about 16 GB of memory. Fastest on an Apple Silicon Mac (M1 or newer) or a computer with an NVIDIA graphics
-card; on other computers a report can take several minutes. Windows needs `winget` (built into Windows 10/11).
+### Step 3 — Type your company's details (once)
 
-<details><summary>The same steps by hand (Mac)</summary>
+Open `data/profile.yaml` in any text editor (TextEdit, Notepad, …). It starts with a **sample company** — replace
+each value after the `:` with yours, keep the left side as it is, and save:
+
+```yaml
+employer_name: Your Company Name
+employer_street: 100 Main Street
+employer_city: Your City
+employer_state: South Dakota
+employer_zip: "57104"          # keep the quotes
+employer_phone: 605 555 0100
+employer_fein: 12-3456789      # federal tax ID
+```
+
+You can also add `employer_employee_count:`, `insurer_name:` (workers' comp insurer) and `policy_number:`.
+These go on every report — unless a recording names a different company (see **What to say**).
+
+### Step 4 — Allow the microphone (once)
+
+The first time you record, your computer asks whether the terminal may use the microphone — click **Allow**.
+(Mac: if you missed it, System Settings → Privacy & Security → Microphone → turn on Terminal. Windows: Settings →
+Privacy → Microphone → allow desktop apps.)
+
+### Step 5 — Try it with your voice (recommended before real use)
+
+```bash
+uv run live-test
+```
+
+Pick a script (1–3), press **Enter**, read the script out loud, then say **"stop recording"**. The app fills the
+forms and checks every box against the script's right answers — see **Live test** below.
+
+### Step 6 — Make a real report (every time)
+
+```bash
+uv run record
+```
+
+1. Press **Enter** (or say **"start recording"**).
+2. Tell what happened in your own words, in the order under **What to say**. Pauses to think are fine.
+3. Say **"stop recording"**.
+4. Check **What I heard** on the screen. The app fills the forms (about a minute), saves them, adds the report to
+   the Excel file and opens the filled forms.
+5. Look over each form (`*_print.pdf`). Boxes marked "pick by hand" on the screen need you. If a box is wrong,
+   fix it in the editable copy `*_filled.pdf` and print or send that one instead.
+
+**Where everything is:** each report → `records/<date>_incident/` (the filled PDFs + what was heard). Every report in
+one Excel file → `data_tracker/reports.xlsx`.
+
+<details><summary>The setup steps by hand (Mac), if you'd rather not use setup.sh</summary>
 
 ```bash
 brew install uv ffmpeg ollama        # Python manager, audio reader, local AI
@@ -42,8 +107,6 @@ mkdir -p data && cp templates/examples/company_profile.yaml data/profile.yaml
 
 </details>
 
-Check it with your voice: `uv run live-test` (below).
-
 ## Live test — check it with your own voice
 
 ```bash
@@ -59,15 +122,7 @@ by itself) with the filled PDFs and `RESULTS.md`: every box, what it should be, 
 ✓ right / ✗ wrong / 👁 written answers to read yourself. Its Excel file is `data_tracker/live_test.xlsx` (the
 latest run — kept apart from your real reports). Your recordings stay on your Mac, out of git.
 
-## How to use it
-
-```bash
-uv run record
-```
-
-Press **Enter** or say **"start recording"**, tell what happened in your own words, then say **"stop recording"**.
-Pauses to think are fine. The app shows what it heard, fills the forms, saves them, adds the report to the Excel
-file, and opens the filled forms on your screen.
+## More about using it
 
 | Other things it can do | Command |
 |---|---|
@@ -97,6 +152,8 @@ skipped. Run `uv run add-old-pdfs` with nothing after it to just rebuild the Exc
 Say it in your own words — this order covers every box on OSHA 301 and the SD form.
 
 1. **Who you are** — "This report is by **[your name]**, **[job title]**, phone **[number]**."
+   *Only if the report is for a different company than in `data/profile.yaml`:* "We are **[company name]**,
+   **[street, city, state, ZIP]**, phone **[number]**." Say the name, or the profile's company is used.
 2. **Who got hurt** — full name (with middle initial), male/female, job title, full/part time, hours a week,
    phone, home address (street, city, state, ZIP), date of birth, date hired.
 3. **When** — the date ("October 3rd, 2026"), the time they started work, the time it happened — always with
