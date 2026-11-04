@@ -81,6 +81,16 @@ def forms_said(transcript: str, forms: list[FormMap]) -> list[FormMap]:
                                     for s in f.say)]
 
 
+STORY_OPENERS = ("this report is by", "this is an injury report", "this is a mishap report")
+
+
+def opens_story(text: str, forms: list[FormMap]) -> bool:
+    """True when `text` sounds like the start of a report: a form's name ("OSHA form 301", "Mishap") or one of the
+    usual opening lines — so the app can start recording without an Enter or "start recording"."""
+    plain = " ".join(re.findall(r"[a-z0-9]+", text.lower()))
+    return bool(forms_said(text, forms)) or any(opener in plain for opener in STORY_OPENERS)
+
+
 def needed_groups(forms: list[FormMap], facts_path: Path = FACTS_PATH) -> frozenset[str]:
     """The fact groups these forms use (story, company, mishap) — the questions worth asking for them."""
     group_of = {f.key: f.group for f in load_template(facts_path).fields}

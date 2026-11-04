@@ -24,6 +24,7 @@ from vff import transcriber
 from vff.cli.make_report import file_report
 from vff.export_excel import rebuild_workbook
 from vff.extract import DEFAULT_MODEL
+from vff.forms import load_forms, opens_story
 from vff.incident import load_profile
 from vff.dashboard import write_dashboard
 from vff.live_test import RESULTS_DIR, TEST_PROFILE, TEST_WORKBOOK, check_report, load_scripts, write_results
@@ -58,11 +59,16 @@ def _show(number: int, total: int, script) -> None:
 def _record(script, number: int) -> str | None:
     """Start on Enter OR on saying "start recording"; stop on "stop recording"."""
     phrases = parse_stop_phrases("")
-    print(f'\nWhen you are ready, press Enter or say "start recording". Wait for "Go ahead", then read the script'
-          f' above.\nSay "{phrases[0]}" when you are done.')
+    print(f'\nWhen you are ready, just start reading the script above (its first words start the recording), or press'
+          f' Enter / say "start recording" and wait for "Go ahead".\nSay "{phrases[0]}" when you are done.')
+    forms = load_forms()
     rest = start_on_enter_or_phrase(
-        script.hints, on_heard=lambda heard: print(f'  (heard "{heard}" — press Enter or say "start recording")'))
-    speak("Go ahead.")
+        script.hints, on_heard=lambda heard: print(f'  (heard "{heard}" — not the start of a report; read the script)'),
+        starts_story=lambda heard: opens_story(heard, forms))
+    if rest:
+        print(f'  (heard "{rest}" — started)')
+    else:
+        speak("Go ahead.")
     print("Recording…")
     text = listen(SILENCE_SECONDS, script.hints, phrases=phrases)
     return " ".join(part for part in (rest, text) if part) or None

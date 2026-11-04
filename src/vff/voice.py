@@ -23,22 +23,24 @@ _ENTER: "queue.Queue[str]" = queue.Queue()  # every Enter pressed, read by one h
 _reader_started = False
 
 
-def start_on_enter_or_phrase(hints: str, on_heard=None) -> str:
-    """Wait for the start cue: Enter, or saying "start recording". Returns words said after the phrase ('' usually).
-    An Enter pressed earlier (while forms were being filled) does not count."""
+def start_on_enter_or_phrase(hints: str, on_heard=None, starts_story=None) -> str:
+    """Wait for the start cue: Enter, saying "start recording", or words that `starts_story(text)` accepts as the
+    story's own opening (e.g. a form's name) — those words are kept and returned. An Enter pressed earlier (while
+    forms were being filled) does not count."""
     global _reader_started
     if not _reader_started:
         threading.Thread(target=lambda: [_ENTER.put(line) for line in sys.stdin], daemon=True).start()
         _reader_started = True
     while not _ENTER.empty():
         _ENTER.get_nowait()
-    return wait_for_start(hints, pressed=lambda: not _ENTER.empty(), on_heard=on_heard)
+    return wait_for_start(hints, pressed=lambda: not _ENTER.empty(), on_heard=on_heard, starts_story=starts_story)
 
 
 def wait_for_start(hints: str, pressed=None, on_heard=None,
-                   phrases: tuple[str, ...] = DEFAULT_START_PHRASES) -> str:
-    """Wait until "start recording" is said, or `pressed()` turns true (Enter). Returns what was said after the
-    phrase in the same breath (usually ''). Anything else heard is shown through `on_heard` and ignored."""
+                   phrases: tuple[str, ...] = DEFAULT_START_PHRASES, starts_story=None) -> str:
+    """Wait until "start recording" is said, `pressed()` turns true (Enter), or `starts_story(text)` says the words
+    heard are the story's opening (returned whole). Otherwise returns what was said after the phrase in the same
+    breath (usually ''). Anything else heard is shown through `on_heard` and ignored."""
     while not (pressed and pressed()):
         audio, reason = record_until_done(ANSWER_SILENCE_SECONDS, wait_for_speech_seconds=START_WAIT_SECONDS,
                                           max_seconds=30.0, cancel=pressed)
@@ -49,6 +51,8 @@ def wait_for_start(hints: str, pressed=None, on_heard=None,
         rest = after_start_phrase(text, phrases)
         if rest is not None:
             return rest
+        if starts_story and text and starts_story(text):
+            return text
         if on_heard:
             on_heard(text)
     return ""

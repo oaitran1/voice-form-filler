@@ -3,10 +3,10 @@
     uv run record
     uv run record --form osha_301      # skip the first question
 
-It first asks which form you are filling out (say "OSHA form", "South Dakota form" or "Mishap", or "any" for every
-form that fits — or type its number). Then press Enter or say "start recording", tell the story in your own words
-(start with who you are), and say "stop recording". The app writes down what it heard, fills the form(s), saves them
-in records/<date>_incident/, adds the report to data_tracker/reports.xlsx, and opens the filled forms.
+It first asks which form you are filling out — say "OSHA form 301", "South Dakota form" or "Mishap" (or "any" for
+every form that fits, or type its number). Naming the form starts the recording: it says "Go ahead", you tell the
+story in your own words (start with who you are) and say "stop recording". The app writes down what it heard, fills
+the form(s), saves them in records/<date>_incident/, adds the report to data_tracker/reports.xlsx, and opens them.
 """
 
 import argparse
@@ -25,7 +25,7 @@ from vff.incident import PROFILE_PATH, load_profile
 from vff.paths import RECORDS_DIR
 from vff.system import show, speak
 from vff.triggers import parse_stop_phrases
-from vff.voice import listen, start_on_enter_or_phrase
+from vff.voice import listen
 
 ORDER = """Say it in this order:
   1. Who you are — name, job title, phone
@@ -64,7 +64,8 @@ def choose_form(forms: list[FormMap], hear, read_line) -> list[FormMap]:
     """Ask which form is being filled out. `hear()` listens once (text or None); `read_line(prompt)` reads a typed
     answer. Returns the chosen form(s); [] means every form that fits the story."""
     menu = "\n".join(f"  {i}. {f.title} — say \"{f.say[0]}\"" for i, f in enumerate(forms, 1)) + "\n  0. Any — every form that fits"
-    _say("\nWhich form are we filling out?\n" + menu)
+    _say("\n" + ORDER)
+    _say("\nWhich form are we filling out? Say it (e.g. \"OSHA form 301\") — the recording starts right after.\n" + menu)
     speak("Which form are we filling out? " + ", ".join(f.say[0] for f in forms) + ", or any.")
     answer = hear()
     if answer:
@@ -82,18 +83,13 @@ def choose_form(forms: list[FormMap], hear, read_line) -> list[FormMap]:
 
 
 def _record(hints: str, chosen: list[FormMap]) -> str | None:
+    """Recording starts right after the form is chosen — naming the form is the start cue."""
     stop = parse_stop_phrases("")[0]
     what = " and ".join(f.title for f in chosen) if chosen else "every form that fits the story"
-    _say(f"\nOK — {what}.")
-    speak(f"OK, {what}.")
-    _say("\n" + ORDER)
-    _say('\nPress Enter or say "start recording", then just tell what happened.')
-    _say(f'Start with who you are. Say "{stop}" when you\'re done.\n')
-    rest = start_on_enter_or_phrase(hints)
-    speak("Go ahead.")
+    _say(f"\nOK — {what}. Go ahead: start with who you are.")
+    speak(f"OK, {what}. Go ahead.")
     _say(f'● Recording…  say "{stop}" when you\'re done')
-    text = listen(PAUSE_SECONDS, hints, wait_seconds=30.0, phrases=parse_stop_phrases(""))
-    return " ".join(part for part in (rest, text) if part) or None
+    return listen(PAUSE_SECONDS, hints, wait_seconds=30.0, phrases=parse_stop_phrases(""))
 
 
 def _check_line(result) -> str:

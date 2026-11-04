@@ -24,7 +24,7 @@ from urllib.parse import urlsplit
 
 from vff.dashboard import load_reports, load_runs, render
 from vff.export_excel import WORKBOOK
-from vff.paths import RECORDS_DIR, ROOT
+from vff.paths import DATA_TRACKER_DIR, RECORDS_DIR, ROOT
 from vff.system import show
 
 HOST, PORT = "127.0.0.1", 8631
@@ -56,7 +56,9 @@ def open_terminal(command: str) -> None:
     """Run `command` in a new Terminal window, from the app folder (Mac only)."""
     if sys.platform != "darwin":
         raise OSError("the buttons open a Terminal window, which only works on a Mac")
-    line = _applescript_text(f"cd {shlex.quote(str(ROOT))} && {command}")
+    log = DATA_TRACKER_DIR / "runs.log"  # everything the window shows, kept so a failed run can be read later
+    DATA_TRACKER_DIR.mkdir(parents=True, exist_ok=True)
+    line = _applescript_text(f"cd {shlex.quote(str(ROOT))} && {command} 2>&1 | tee -a {shlex.quote(str(log))}")
     script = f'tell application "Terminal"\nactivate\ndo script "{line}"\nend tell'
     done = subprocess.run(["osascript", "-e", script], check=False, capture_output=True, text=True)
     if done.returncode != 0:

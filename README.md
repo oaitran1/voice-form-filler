@@ -165,8 +165,9 @@ skipped. Run `uv run add-old-pdfs` with nothing after it to just rebuild the Exc
 
 Say it in your own words — this order covers every box on OSHA 301 and the SD form.
 
-0. **Which form** — `uv run record` asks this first: say **"OSHA form"**, **"South Dakota form"** or **"Mishap"**
-   (or **"any"**, or type its number). Naming a form in the story itself works too, and only that form is
+0. **Which form** — `uv run record` asks this first: say **"OSHA form 301"**, **"South Dakota form"** or **"Mishap"**
+   (or **"any"**, or type its number). Naming the form starts the recording — no Enter needed. Naming a form in
+   the story itself works too, and only that form is
    filled (and only its questions are asked). Say none of them and every form that fits the story is filled.
 1. **Who you are** — "This report is by **[your name]**, **[job title]**, phone **[number]**."
    *Only if the report is for a different company than in `data/profile.yaml`:* "We are **[company name]**,
