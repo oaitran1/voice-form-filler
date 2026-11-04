@@ -66,14 +66,19 @@ def company_keys(facts_path: Path = FACTS_PATH) -> frozenset[str]:
 
 
 def build_record(transcript: str, model: str = DEFAULT_MODEL, client=None,
-                 facts_path: Path = FACTS_PATH, groups: frozenset[str] | None = None) -> dict[str, dict]:
+                 facts_path: Path = FACTS_PATH, groups: frozenset[str] | None = None,
+                 on_template=None) -> dict[str, dict]:
     """Story → checked facts: AI draft, proof check against the words, AM/PM, formats.
     Then the company facts, in case the company's own details are said; then the military-mishap facts.
-    `groups` = which of those extra questions to ask (the groups the chosen forms use); None = all of them."""
+    `groups` = which of those extra questions to ask (the groups the chosen forms use); None = all of them.
+    `on_template(i, n, title)` is called before each set of questions (progress)."""
     answers = {}
     extra = [t for t in (company_template(facts_path), mishap_template(facts_path))
              if groups is None or t.fields[0].group in groups]
-    for template in (story_template(facts_path), *extra):
+    templates = (story_template(facts_path), *extra)
+    for i, template in enumerate(templates):
+        if on_template:
+            on_template(i, len(templates), template.title)
         draft = extract_fields(transcript, template, model=model, client=client)
         checked = fill_ampm(template, check_answers(template, draft, transcript), transcript)
         answers |= apply_formats(template, checked, pdf_formats={})
@@ -125,10 +130,13 @@ def ai_picker(model: str = DEFAULT_MODEL, client=None) -> Picker:
 
 
 def fill_forms(forms: list[FormMap], facts: dict[str, str], folder: Path, today: str,
-               picker: Picker | None = None) -> list[FormResult]:
-    """Fill every form from the same facts; each gets an editable and a print copy in `folder`."""
+               picker: Picker | None = None, on_form=None) -> list[FormResult]:
+    """Fill every form from the same facts; each gets an editable and a print copy in `folder`.
+    `on_form(i, n, title)` is called before each form (progress)."""
     results = []
-    for form in forms:
+    for i, form in enumerate(forms):
+        if on_form:
+            on_form(i, len(forms), form.title)
         boxes = {b.name: b for b in read_boxes(form.pdf_path)}
         filled = form_values(form, facts, boxes, today, picker)
         editable = fill_pdf(form.pdf_path, filled.values, Path(folder) / f"{form.id}_filled.pdf")

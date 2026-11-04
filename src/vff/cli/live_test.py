@@ -27,6 +27,7 @@ from vff.extract import DEFAULT_MODEL
 from vff.forms import load_forms, opens_story
 from vff.incident import load_profile
 from vff.dashboard import write_dashboard
+from vff import progress
 from vff.live_test import RESULTS_DIR, TEST_PROFILE, TEST_WORKBOOK, check_report, load_scripts, write_results
 from vff.system import show, speak
 from vff.storage import private_folder
@@ -99,27 +100,34 @@ def main() -> int:
     run_dir = private_folder(RESULTS_DIR / f"{started:%Y-%m-%d_%H%M%S}")
     transcriber.go_offline()
     rows = []
+    progress.begin("test", "Starting the test…")
     try:
         for number, script in enumerate(scripts, start=1):
             _show(number, len(scripts), script)
+            progress.step("listen", f"Script {number} of {len(scripts)}: {script.title}" + ("" if args.typed else " — read it out loud"),
+                          (number - 1, len(scripts)))
             heard = script.text if args.typed else _record(script, number)
             if not heard:
                 print("Nothing was heard — skipping this script.")
                 rows.append((script, "", None, []))
                 continue
             print(f"\n--- What the app heard ---\n{heard}\n")
+            progress.step("heard", f"Got it — filling the forms for script {number} of {len(scripts)}")
             source = "typed script" if args.typed else "live recording"
             folder, _ = file_report(heard, source, args.model, profile, run_dir, name=script.id)
             rows.append((script, heard, folder, check_report(script, folder, profile, f"{datetime.now():%m/%d/%Y}")))
     except (ollama.ResponseError, ConnectionError) as err:
+        progress.fail("The local AI isn't available")
         print(f"The local AI isn't available ({err}). Start it with: brew services start ollama", file=sys.stderr)
         return 2
     except sd.PortAudioError as err:
+        progress.fail("Couldn't use the microphone")
         print(f"Couldn't use the microphone ({err}).", file=sys.stderr)
         return 2
     except KeyboardInterrupt:
         print("\nStopped. What was done so far is kept below.")
 
+    progress.step("save", "Checking every box against the script…")
     workbook, _ = rebuild_workbook(run_dir, out=TEST_WORKBOOK)
     results, right, wrong, look = write_results(run_dir, rows, started)
     print(f"\n{'=' * 78}\nLIVE TEST: {right} of {right + wrong} boxes right, {wrong} wrong, {look} to read yourself.")
@@ -130,6 +138,7 @@ def main() -> int:
     except OSError as err:
         print(f"⚠ The dashboard wasn't updated ({err}); run `uv run dashboard`.")
     print("=" * 78)
+    progress.finish(f"Test done — {right} of {right + wrong} boxes right", run=run_dir.name)
     speak(f"Done. {right} of {right + wrong} boxes right.")
     if not args.no_open:
         show(run_dir)  # the results folder

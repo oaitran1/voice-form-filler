@@ -2,6 +2,7 @@
 
     GET  /                     the page, rebuilt from records/ and live_test/results/ on every load
     GET  /records/<r>/<f>.pdf  a filled PDF from records/
+    GET  /progress             where the current run is (data_tracker/progress.json), for the progress bar
     POST /run/<button>         runs that button's command (the fixed list below) — nothing else can be run
 
 A button that needs the microphone or the keyboard (record, live-test) opens a new Terminal window, so you talk
@@ -22,6 +23,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from vff import progress
 from vff.dashboard import load_reports, load_runs, render
 from vff.export_excel import WORKBOOK
 from vff.paths import DATA_TRACKER_DIR, RECORDS_DIR, ROOT
@@ -104,6 +106,9 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/", "/index.html"):
             page = render(load_runs(), load_reports(), token=self.token)
             self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
+            return
+        if path == "/progress":
+            self._json(200, **progress.read())
             return
         parts = path.split("/")
         pdf = record_pdf(parts[2], parts[3]) if len(parts) == 4 and parts[1] == "records" else None

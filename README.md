@@ -96,7 +96,8 @@ uv run record
 2. Tell what happened in your own words, in the order under **What to say**. Pauses to think are fine.
 3. Say **"stop recording"**.
 4. Check **What I heard** on the screen. The app fills the forms (about a minute), saves them, adds the report to
-   the Excel file and opens the filled forms.
+   the Excel file and opens the filled forms. (With `uv run dashboard` open, a progress bar follows each step there
+   and the filled form appears on its Reports page by itself.)
 5. Look over each form (`*_print.pdf`). Boxes marked "pick by hand" on the screen need you. If a box is wrong,
    fix it in the editable copy `*_filled.pdf` and print or send that one instead.
 
@@ -141,7 +142,7 @@ latest run — kept apart from your real reports). Your recordings stay on your 
 |---|---|
 | **Use a voice memo, video, or text file** | `uv run make-report --input ~/Downloads/incident.m4a` |
 | What to say before you record | `uv run make-report --brief` |
-| The dashboard: reports filed, the forms, live-test accuracy, and buttons that run each step (this Mac only; Ctrl-C stops it). `--write` only writes `data_tracker/dashboard.html` | `uv run dashboard` |
+| The dashboard: reports filed, the forms, live-test accuracy, buttons that run each step, a progress bar while a report is being made, and the filled form shown on the page when it's done (this Mac only; Ctrl-C stops it). `--write` only writes `data_tracker/dashboard.html` | `uv run dashboard` |
 | **Bring in old filled PDFs** (once) | `uv run add-old-pdfs ~/old_reports` |
 
 **Start each recording with who is making the report**, e.g. *"This report is by Sam Park, Kitchen Manager,

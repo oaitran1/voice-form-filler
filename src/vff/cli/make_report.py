@@ -36,6 +36,7 @@ from vff.forms import applies, forms_said, load_forms, needed_groups
 from vff.incident import (PROFILE_PATH, build_record, fact_values, fill_forms, load_profile, spoken_templates,
                           story_template)
 from vff.media import transcript_from_file
+from vff import progress
 from vff.paths import RECORDS_DIR
 from vff.system import speak
 from vff.records import save_record
@@ -127,7 +128,9 @@ def file_report(transcript: str, source: str, model: str, profile: dict[str, str
     if verbose:
         print(f"Forms named: {', '.join(f.id for f in named)}" if named else "No form named: every form that fits")
         print(f"Finding the facts with {model} (offline)…")
-    answers = build_record(transcript, model, groups=needed_groups(named) if named else None)
+    progress.step("facts", "Finding the facts in what was said…")
+    answers = build_record(transcript, model, groups=needed_groups(named) if named else None,
+                           on_template=lambda i, n, title: progress.step("facts", f"Finding the facts — {title}", (i, n)))
     if verbose:
         for template in spoken_templates():
             print_answers(template, answers)
@@ -138,9 +141,12 @@ def file_report(transcript: str, source: str, model: str, profile: dict[str, str
                          "filled (not read back)", now)
     if verbose:
         print(f"\nFilling {len(forms)} form(s): {', '.join(f.id for f in forms)}")
-    results = fill_forms(forms, facts, folder, today=f"{now:%m/%d/%Y}")  # dropdowns: clear matches only
+    progress.step("fill", f"Filling {len(forms)} form(s)…")
+    results = fill_forms(forms, facts, folder, today=f"{now:%m/%d/%Y}",  # dropdowns: clear matches only
+                         on_form=lambda i, n, title: progress.step("fill", f"Filling {title}", (i, n)))
     summary = _print_form_results(results, verbose)
     write_new_private_file(folder / "forms.json", json.dumps(summary, indent=2) + "\n")
+    progress.step("save", "Saving the report…")
     if verbose:
         print(f"\nSaved: {folder}")
     return folder, results
@@ -151,10 +157,14 @@ def run_incident(args) -> int:
     profile = load_profile(Path(args.profile))
     if not profile:
         print(f"Note: no company profile at {args.profile}; employer boxes stay blank.")
+    progress.begin("report" if args.live else "file", "Listening…" if args.live else "Reading the file…")
     transcript, source = get_transcript(args, story_template())
     print(f"\n--- Transcript ({source}) ---\n{transcript}\n")
-    _, results = file_report(transcript, source, args.model, profile, RECORDS_DIR, wanted_forms=args.forms)
+    progress.step("heard", "Got it.")
+    folder, results = file_report(transcript, source, args.model, profile, RECORDS_DIR, wanted_forms=args.forms)
     _update_workbook()
+    progress.finish(f"Done — {len(results)} form(s) filled", report=folder.name,
+                    pdfs=tuple(r.print_pdf.name for r in results))
     speak(f"Saved. {len(results)} forms filled.")
     return 0
 
@@ -215,15 +225,19 @@ def main() -> int:
     try:
         return run_incident(args)
     except (FileNotFoundError, ValueError) as err:
+        progress.fail(f"Stopped: {err}")
         print(f"Stopped: {err} Nothing saved.", file=sys.stderr)
         return 2
     except (ollama.ResponseError, ConnectionError) as err:
+        progress.fail("The local AI isn't available")
         print(f"The local AI isn't available ({err}). Start it with: brew services start ollama", file=sys.stderr)
         return 2
     except sd.PortAudioError as err:
+        progress.fail("Couldn't use the microphone")
         print(f"Couldn't use the microphone ({err}). Nothing saved.", file=sys.stderr)
         return 2
     except KeyboardInterrupt:
+        progress.fail("Stopped")
         print("\nStopped. Nothing saved.")
         return 130
 

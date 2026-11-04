@@ -11,7 +11,6 @@ PAGE = r"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="30">
 <title>Voice Form Filler</title>
 <style>
 :root {
@@ -110,6 +109,27 @@ p { margin: 0 0 10px; }
 .btn .ic { font-size: 1.1rem; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; align-items: center; }
 .actions .hint { font-size: .85rem; color: var(--muted); }
+.progress { margin-bottom: 18px; display: none; }
+.progress.on { display: block; }
+.progress .ptop { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.progress .pmsg { font-weight: 600; }
+.progress .ptime { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.pbar { height: 10px; border-radius: 999px; background: var(--soft); overflow: hidden; margin: 12px 0 10px; }
+.pbar i { display: block; height: 100%; width: 0; border-radius: 999px; background: var(--s1); transition: width .6s ease; }
+.progress.done .pbar i { background: var(--good); } .progress.stopped .pbar i { background: var(--critical); }
+.progress.stalled .pbar i { background: var(--warn); }
+.steps { display: flex; gap: 6px; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; font-size: .82rem; color: var(--muted); }
+.steps li { display: flex; align-items: center; gap: 6px; }
+.steps li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.steps li.past { color: var(--text-2); } .steps li.past::before { background: var(--good); }
+.steps li.now { color: var(--text); font-weight: 600; } .steps li.now::before { background: var(--s1); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s1) 25%, transparent); }
+.steps li + li { margin-left: 6px; }
+.viewer { margin-bottom: 14px; display: none; padding: 14px 16px; }
+.viewer.on { display: block; }
+.viewer .vhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.viewer iframe { width: 100%; height: 78vh; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.btn.small { padding: 5px 10px; font-size: .82rem; }
+.chip a.view { cursor: pointer; }
 .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: var(--text); color: var(--card); padding: 10px 18px; border-radius: 999px; font-size: .9rem; box-shadow: var(--shadow); opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 3; max-width: 90vw; }
 .toast.on { opacity: 1; }
 .hero { display: grid; grid-template-columns: auto 1fr; gap: 10px 28px; align-items: center; }
@@ -188,6 +208,12 @@ details summary { cursor: pointer; color: var(--text-2); font-size: .95rem; marg
     <div class="sub" id="subtitle"></div>
   </div>
 
+  <div class="card progress" id="progress" aria-live="polite">
+    <div class="ptop"><span class="pmsg" id="pmsg"></span><span class="ptime" id="ptime"></span></div>
+    <div class="pbar"><i id="pfill"></i></div>
+    <ol class="steps" id="psteps"></ol>
+  </div>
+
   <section class="panel" data-panel="overview">
     <div class="actions" id="actions"></div>
     <div class="tiles" id="tiles"></div>
@@ -198,6 +224,10 @@ details summary { cursor: pointer; color: var(--text-2); font-size: .95rem; marg
   </section>
 
   <section class="panel" data-panel="reports">
+    <div class="card viewer" id="viewer">
+      <div class="vhead"><b id="viewerTitle"></b><span><a class="btn small" id="viewerOpen" target="_blank">Open in a new tab</a> <button class="btn small" id="viewerClose">Close</button></span></div>
+      <iframe id="viewerFrame" title="The filled form"></iframe>
+    </div>
     <div class="card" id="reportList"></div>
   </section>
 
@@ -242,7 +272,7 @@ details summary { cursor: pointer; color: var(--text-2); font-size: .95rem; marg
       <div class="card"><h3>4 · Bring in old filled PDFs</h3><span class="cmd">uv run add-old-pdfs ~/old_forms</span>
         Copies them in and rebuilds the Excel file so every report, old and new, is in one place.</div>
       <div class="card"><h3>This page</h3><span class="cmd">uv run dashboard</span>
-        Starts the page with its buttons (each one opens a Terminal window running the command). It rebuilds on every load, reloads every 30 seconds and stays where you were. Nothing leaves this computer — it runs on this Mac only.</div>
+        Starts the page with its buttons (each one opens a Terminal window running the command). It rebuilds on every load, reloads every 30 seconds (not during a run) and stays where you were. Nothing leaves this computer — it runs on this Mac only.</div>
     </div>
   </section>
 </div>
@@ -267,6 +297,7 @@ const moveTip = e => { tip.style.left = Math.min(e.clientX + 14, innerWidth - 33
 const hideTip = () => { tip.style.display = "none"; };
 const remember = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 const recall = k => { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } };
+const forget = k => { try { localStorage.removeItem(k); } catch (e) {} };
 
 function segment(id, attr, fallback) {
   const el = document.getElementById(id);
@@ -332,7 +363,7 @@ document.getElementById("tiles").innerHTML = [
 const reportRow = r => `<div class="report">
   <div><div class="when">${esc(r.created)}</div><div class="src">${esc(r.source)}</div></div>
   <div><div class="story">${r.story ? esc(r.story) + (r.story.length >= 180 ? "…" : "") : "<span class='small'>(no transcript)</span>"}</div>
-    <div class="forms">${r.forms.length ? r.forms.map(f => `<span class="chip"><span>${esc(f.title)}</span><span class="n">${plural(f.filled, "box")}${f.to_check ? ` · ${f.to_check} to check` : ""}</span>${f.print_pdf ? `<a href="${pdfUrl(r, f.print_pdf)}" target="_blank">Open PDF</a>` : ""}</span>`).join("")
+    <div class="forms">${r.forms.length ? r.forms.map(f => `<span class="chip"><span>${esc(f.title)}</span><span class="n">${plural(f.filled, "box")}${f.to_check ? ` · ${f.to_check} to check` : ""}</span>${f.print_pdf ? `<a class="view" data-view="${esc(r.id)}/${esc(f.print_pdf)}" data-title="${esc(f.title)} — ${esc(r.created)}">View</a> <a href="${pdfUrl(r, f.print_pdf)}" target="_blank">Open PDF</a>` : ""}</span>`).join("")
       : `<span class="small">No form fit this story.</span>`}</div></div></div>`;
 const noReports = `<div class="empty"><b>No report yet.</b>Say <code>uv run record</code> in the app folder and tell what happened. It shows up here.</div>`;
 document.getElementById("latestReports").innerHTML = reports.length ? reports.slice(0, 3).map(reportRow).join("") + (reports.length > 3 ? `<p class="small" style="margin:12px 0 0">…and ${reports.length - 3} more under <b>Reports</b>.</p>` : "") : noReports;
@@ -430,6 +461,77 @@ document.getElementById("runList").innerHTML = DATA.runs.length
     [...DATA.runs].reverse().map(r => { const R = r.scripts.reduce((a, s) => a + s.right, 0), S = r.scripts.reduce((a, s) => a + s.scored, 0);
       return `<tr><td>${esc(r.started)}</td><td>${esc(r.scripts.map(s => `${nameOf[s.script]} (${modeWord(s.mode)})`).join(", "))}</td><td class="num">${R}</td><td class="num">${S}</td><td class="num">${S ? pct(R, S) + "%" : "—"}</td><td class="small">${esc(r.folder)}</td></tr>`; }).join("") + `</tbody></table>`
   : `<div class="empty">No tests yet.</div>`;
+
+// ---- the form viewer: a filled PDF shown on the Reports page (remembered through the auto-reload)
+const viewer = document.getElementById("viewer");
+function showForm(id, pdf, title, keep = true) {
+  const r = reports.find(x => x.id === id), form = r && r.forms.find(f => f.print_pdf === pdf);
+  if (!form) { forget("vff-view"); return false; }
+  document.getElementById("viewerTitle").textContent = title || `${form.title} — ${r.created}`;
+  document.getElementById("viewerOpen").href = pdfUrl(r, pdf);
+  const frame = document.getElementById("viewerFrame");
+  if (frame.dataset.src !== pdfUrl(r, pdf)) { frame.src = pdfUrl(r, pdf); frame.dataset.src = pdfUrl(r, pdf); }
+  viewer.classList.add("on");
+  if (keep) remember("vff-view", JSON.stringify({id, pdf, title}));
+  return true;
+}
+document.getElementById("viewerClose").addEventListener("click", () => { viewer.classList.remove("on"); forget("vff-view"); });
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-view]");
+  if (!a) return;
+  e.preventDefault();
+  const [id, pdf] = a.dataset.view.split("/");
+  showForm(id, pdf, a.dataset.title);
+  openTab("reports");
+  viewer.scrollIntoView({behavior: "smooth", block: "start"});
+});
+try { const v = JSON.parse(recall("vff-view") || "null"); if (v) showForm(v.id, v.pdf, v.title, false); } catch (e) { forget("vff-view"); }
+
+// ---- the progress bar: asks the dashboard server every second where the current run is
+const progressCard = document.getElementById("progress");
+const SHOW_DONE_FOR = 180, STALLED_AFTER = 120, FORGET_AFTER = 20 * 60;  // seconds
+const mmss = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+function drawProgress(p) {
+  const running = p.step && p.step !== "done" && p.step !== "stopped";
+  const show = p.step && (running ? p.age < FORGET_AFTER : p.age < SHOW_DONE_FOR);
+  progressCard.classList.toggle("on", !!show);
+  if (!show) return;
+  const stalled = running && p.age > STALLED_AFTER;
+  progressCard.className = `card progress on ${p.step === "done" ? "done" : p.step === "stopped" ? "stopped" : stalled ? "stalled" : ""}`;
+  document.getElementById("pmsg").textContent = stalled ? `${p.message} — no news for ${Math.round(p.age / 60)} min; check the Terminal window` : p.message;
+  document.getElementById("ptime").textContent = running ? `${p.percent}% · ${mmss(p.updated - p.started + p.age)}` : p.step === "done" ? `took ${mmss(p.updated - p.started)}` : "";
+  document.getElementById("pfill").style.width = `${p.step === "stopped" ? 100 : p.percent}%`;
+  const names = (p.steps || []).map(st => st[0]), at = names.indexOf(p.step);
+  document.getElementById("psteps").innerHTML = (p.steps || []).map(([name, label], i) =>
+    `<li class="${i < at || p.step === "done" ? "past" : i === at ? "now" : ""}">${esc(label)}</li>`).join("");
+}
+function showWhatFinished(p) {
+  // A run just finished: bring its report (or test) onto the page, once.
+  const key = p.report ? `report:${p.report}` : p.run ? `test:${p.run}` : "";
+  if (!key || recall("vff-shown") === key) return;
+  remember("vff-shown", key);
+  let tab = "overview";
+  if (p.report && p.pdfs && p.pdfs.length) {
+    remember("vff-view", JSON.stringify({id: p.report, pdf: p.pdfs[0], title: ""}));
+    tab = "reports";
+  } else if (p.run) {
+    tab = "tests";
+  }
+  remember("vff-tab", tab);
+  location.replace(`${location.pathname}?t=${Date.now()}#${tab}`);  // a fresh load that lands on that tab
+}
+let running = false;
+if (CAN_RUN) {
+  const poll = () => fetch("/progress").then(r => r.json()).then(p => {
+    running = !!p.step && p.step !== "done" && p.step !== "stopped" && p.age < FORGET_AFTER;
+    drawProgress(p);
+    if (p.step === "done") showWhatFinished(p);
+  }).catch(() => {});
+  poll();
+  setInterval(poll, 1000);
+}
+// the page rebuilds itself every 30 s (new reports and tests), except in the middle of a run
+setInterval(() => { if (!running) location.reload(); }, 30000);
 
 // ---- navigation: the page remembers where you were through the auto-reload
 const TITLES = {overview: ["Overview", "One recording → every safety form that applies, filled, saved and tracked. Nothing leaves this computer."],

@@ -22,6 +22,7 @@ from vff.export_excel import rebuild_workbook
 from vff.extract import DEFAULT_MODEL
 from vff.forms import FormMap, forms_said, load_forms
 from vff.incident import PROFILE_PATH, load_profile
+from vff import progress
 from vff.paths import RECORDS_DIR
 from vff.system import show, speak
 from vff.triggers import parse_stop_phrases
@@ -65,6 +66,7 @@ def choose_form(forms: list[FormMap], hear, read_line) -> list[FormMap]:
     answer. Returns the chosen form(s); [] means every form that fits the story."""
     menu = "\n".join(f"  {i}. {f.title} — say \"{f.say[0]}\"" for i, f in enumerate(forms, 1)) + "\n  0. Any — every form that fits"
     _say("\n" + ORDER)
+    progress.step("ask", "Which form? Say its name in the Terminal window — e.g. \"OSHA form 301\"")
     _say("\nWhich form are we filling out? Say it (e.g. \"OSHA form 301\") — the recording starts right after.\n" + menu)
     speak("Which form are we filling out? " + ", ".join(f.say[0] for f in forms) + ", or any.")
     answer = hear()
@@ -89,6 +91,7 @@ def _record(hints: str, chosen: list[FormMap]) -> str | None:
     _say(f"\nOK — {what}. Go ahead: start with who you are.")
     speak(f"OK, {what}. Go ahead.")
     _say(f'● Recording…  say "{stop}" when you\'re done')
+    progress.step("listen", f'Listening — {what}. Tell what happened, then say "{stop}"')
     return listen(PAUSE_SECONDS, hints, wait_seconds=30.0, phrases=parse_stop_phrases(""))
 
 
@@ -114,6 +117,7 @@ def main() -> int:
     if not profile:
         _say(f"(No company details yet — employer boxes stay blank unless you say the company. Add them in {PROFILE_PATH}.)")
     transcriber.go_offline()
+    progress.begin("report", "Starting…")
     try:
         forms = sorted(load_forms(), key=lambda f: f.status != "approved")  # the everyday forms first, drafts last
         if args.form:
@@ -126,19 +130,24 @@ def main() -> int:
             chosen = choose_form(forms, lambda: listen(1.5, args.hints, wait_seconds=ANSWER_SECONDS), input)
         heard = _record(args.hints, chosen)
         if not heard:
+            progress.fail("Nothing was heard")
             _say("Nothing was heard. Nothing saved.")
             return 1
         _say(f"\nWhat I heard:\n  {heard}\n")
         _say("✓ Got it. Filling the forms… (about a minute)")
+        progress.step("heard", "Got it — filling the forms (about a minute)")
         folder, results = file_report(heard, "live recording", args.model, profile, RECORDS_DIR, verbose=False,
                                       wanted_forms=",".join(f.id for f in chosen))
     except (ollama.ResponseError, ConnectionError) as err:
+        progress.fail("The local AI isn't available")
         print(f"The local AI isn't available ({err}). Start it with: brew services start ollama", file=sys.stderr)
         return 2
     except sd.PortAudioError as err:
+        progress.fail("Couldn't use the microphone")
         print(f"Couldn't use the microphone ({err}). Nothing saved.", file=sys.stderr)
         return 2
     except (KeyboardInterrupt, EOFError):
+        progress.fail("Stopped")
         _say("\nStopped. Nothing saved.")
         return 130
 
@@ -155,6 +164,8 @@ def main() -> int:
         _say(f"✓ Dashboard updated: {dashboard.relative_to(dashboard.parents[1])}")
     except (OSError, ValueError) as err:
         _say(f"⚠ The Excel file wasn't updated ({err}). The forms are saved; run `uv run add-old-pdfs` to catch up.")
+    progress.finish(f"Done — {len(results)} form(s) filled" if results else "Done — no form fits this story",
+                    report=folder.name, pdfs=tuple(r.print_pdf.name for r in results))
     for result in results:
         show(result.print_pdf)  # the filled forms
     _say(f"\nDone. Saved in {folder.relative_to(RECORDS_DIR.parent)}/" + (" — the forms are open." if results else ""))
