@@ -93,6 +93,12 @@ def _chosen_forms(named: list, facts: dict[str, str]) -> list:
     return named or [f for f in load_forms() if applies(f, facts)]
 
 
+def missing_line(missing: list[tuple[str, str]]) -> str:
+    """One line naming the preliminary boxes still blank, e.g. 'The preliminary report still needs: Local Time, …'."""
+    labels = [label.split(" — ", 1)[-1] for _, label in missing]
+    return f"The preliminary report still needs: {', '.join(labels)}"
+
+
 def _print_form_results(results, verbose: bool = True) -> list[dict]:
     summary = []
     for result in results:
@@ -104,9 +110,11 @@ def _print_form_results(results, verbose: bool = True) -> list[dict]:
                 print(f"  ⚠ {box}: {note}")
             if filled.by_hand:
                 print(f"  ✍ fill by hand: {', '.join(filled.by_hand)}")
+            if filled.missing:
+                print(f"  ⚑ {missing_line(filled.missing)}")
         summary.append({"form": result.form.id, "filled": len(filled.values), "notes": filled.notes,
-                        "by_hand": filled.by_hand, "editable_pdf": result.filled_pdf.name,
-                        "print_pdf": result.print_pdf.name})
+                        "by_hand": filled.by_hand, "missing": filled.missing,
+                        "editable_pdf": result.filled_pdf.name, "print_pdf": result.print_pdf.name})
     return summary
 
 

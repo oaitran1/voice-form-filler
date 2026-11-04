@@ -11,6 +11,10 @@ You tell what happened — out loud or from a voice memo — and the app does th
 Old filled PDFs can be brought into the same Excel file, so every report, old and new, is in one place.
 Everything runs on your computer; nothing is sent to the internet.
 
+![How it works: talk, listen, understand, fill, keep](docs/architecture.png)
+
+The detailed version, with the files and models behind each step, is [docs/architecture_detailed.png](docs/architecture_detailed.png).
+
 ## Step by step
 
 Works on Mac, Windows and Linux. Needs about 16 GB of memory and 12 GB of free disk space. Fastest on an Apple
@@ -173,6 +177,8 @@ Say it in your own words — this order covers every box on OSHA 301 and the SD 
 9. **Military mishap only** (ship, unit, command or base) — the ship's name, where it was (at sea / port, nearest
    base, country), the exact space on the ship, the kind of event, the sequence of events with times, the weather,
    sea state, visibility, wind, and whether there were eyewitnesses. This fills the Mishap Information Worksheet.
+   A preliminary report must have six boxes — the one-liner, the kind of event, the local time, the date it was
+   reported to the safety office, and the ISB and SIB investigators — so say them; any left blank is flagged after filling.
 
 Tips: say dates in full (not "yesterday" or "the same day" — the app won't guess a date); say every yes/no out
 loud; anything you don't say is left blank.

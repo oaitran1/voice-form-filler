@@ -3,6 +3,7 @@
 # Findings/Recs, OFS/ORS, Exhibits except the witness list), Persons rows a story never carries (DOD ID, grade, AFSC …).
 # No event-date box was photographed (the worksheet's first page is missing) — incident_date has nowhere to go yet.
 # Fills only for a military story: needs_any = a ship, a base, or a mishap event type was said.
+# required: preliminary = the boxes a preliminary report must have (Oai, 2026-11-04); any left blank is flagged after filling.
 id: mishap_worksheet
 title: Mishap Information Worksheet
 pdf: mishap_worksheet.pdf
@@ -10,10 +11,12 @@ status: draft
 needs_any: [ship_name, nearest_base, mishap_event_type]
 say: [Mishap, Mishap worksheet, Mishap form]
 boxes:
-  - {box: General_Information.Event_Type__Secondary_Tiers, fact: mishap_event_type}
-  - {box: General_Information.Local_Time, fact: [incident_time, incident_ampm]}
-  - {box: General_Information.Date_Report_To_Safety_Office__Local, fact: reported_date}
-  - {box: General_Information.One_Liner, fact: mishap_one_liner}
+  - {box: General_Information.Event_Type__Secondary_Tiers, fact: mishap_event_type, required: preliminary}
+  - {box: General_Information.Local_Time, fact: [incident_time, incident_ampm], required: preliminary}
+  - {box: General_Information.Date_Report_To_Safety_Office__Local, fact: reported_date, required: preliminary}
+  - {box: General_Information.One_Liner, fact: mishap_one_liner, required: preliminary}
+  - {box: General_Information.Event_ISB_Investigator, fact: isb_investigator, required: preliminary}
+  - {box: General_Information.Event_SIB_Investigator, fact: sib_investigator, required: preliminary}
   - {box: General_Information.Did_this_event_occur_in_a_combat_zone, fact: combat_zone}
   - {box: General_Information.Did_this_mishap_occur_during_training, fact: during_training}
   - {box: General_Information.Were_there_any_eyewitnesses_to_this_event, fact: eyewitnesses}

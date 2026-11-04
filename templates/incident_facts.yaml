@@ -161,3 +161,7 @@ fields:
   - {key: environment_factor, label: "Was the environment (weather, sea, lighting) a factor?", kind: choice, options: ["Yes", "No"], group: mishap}
   - {key: sequence_of_events, label: "The sequence of events with their times, in order", kind: text, group: mishap,
      hint: "e.g. 2135 smoke noticed; 2137 space evacuated, power secured; 2143 fire out"}
+  - {key: isb_investigator, label: "Event ISB investigator (Interim Safety Board) — name and rank", group: mishap,
+     hint: "Only the person named as the ISB investigator; blank if none is named"}
+  - {key: sib_investigator, label: "Event SIB investigator (Safety Investigation Board) — name and rank", group: mishap,
+     hint: "Only the person named as the SIB investigator; blank if none is named"}

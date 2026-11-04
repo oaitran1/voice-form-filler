@@ -1,0 +1,68 @@
+title: Switchboard arc flash — mishap worksheet, the six preliminary boxes (one-liner, ISB/SIB investigator, event type, local time, date reported)
+hints: USS Example, Mayport, Jordan Rivera, Dana Kim, Taylor Morgan, Avery Nguyen, Casey Brooks, Auxiliary Machinery Room
+script: >
+  Mishap. This was a Class C afloat electrical fire. In one sentence: an electrical fire in the number two switchboard
+  aboard USS Example burned one sailor's hand and was put out within eight minutes.
+  It happened on November 4th, 2026, at 2135 local time. It was reported to the safety office the same day,
+  November 4th, 2026. The ISB investigator is Lieutenant Avery Nguyen. The SIB investigator is Commander Casey Brooks.
+  It did not happen in a combat zone. It did not happen during training. There were eyewitnesses. The environment
+  was not a factor.
+  The ship was not in port. The ship is USS Example. The general location was at sea, about 40 nautical miles east
+  of Naval Station Mayport, Florida. The exact place was Auxiliary Machinery Room Number Two, at the number two
+  switchboard. The nearest base is Naval Station Mayport. The country is the United States.
+  Lighting was artificial light inside the space. Visibility was unrestricted. Sea state was calm seas. Wind was
+  from the northeast at 8 knots. Weather was clear.
+  The injured person is Petty Officer Second Class Jordan Rivera, male, an electrician's mate, hired on May 15th,
+  2021. He began work that day at 7:00 in the morning. Just before, the employee was checking breaker connections
+  at the number two switchboard with a multimeter and insulated gloves. He got a second-degree burn on his right
+  hand and forearm, caused by an electrical arc flash from the switchboard. He was treated by Hospital Corpsman
+  First Class Dana Kim in the ship's medical department. He was not treated in an emergency room and was not
+  hospitalized overnight. Safety equipment was provided, insulated gloves and a face shield, and he was wearing them.
+  What happened: while the employee was checking breaker connections, a loose bus bar connection arced, which
+  started a fire in the switchboard cabinet and burned the employee's hand and forearm. The space filled with smoke
+  and the fire was put out with a CO2 extinguisher.
+  The sequence of events: at 2135 the arc flash and smoke were noticed. At 2137 the space was evacuated and power
+  to the switchboard was secured. At 2140 the fire party arrived. At 2143 the fire was out. At 2150 the injured
+  sailor was seen in medical. The witnesses were Petty Officer Lee and Fireman Apprentice Taylor Morgan.
+facts:
+  # the six preliminary boxes
+  mishap_event_type: Class C afloat electrical fire
+  incident_time: "2135"
+  reported_date: 11/04/2026
+  isb_investigator: Lieutenant Avery Nguyen
+  sib_investigator: Commander Casey Brooks
+  # mishap_one_liner is a written answer — read by eye
+  # the rest of the worksheet
+  incident_types: Injury
+  incident_date: 11/04/2026
+  combat_zone: "No"
+  during_training: "No"
+  eyewitnesses: "Yes"
+  environment_factor: "No"
+  ship_name: USS Example
+  general_location: at sea, about 40 nautical miles east of Naval Station Mayport, Florida
+  location_description: Auxiliary Machinery Room Number Two, at the number two switchboard
+  nearest_base: Naval Station Mayport
+  country: United States
+  lighting_conditions: artificial light
+  visibility_conditions: unrestricted
+  sea_state: calm seas
+  wind_direction: northeast
+  wind_speed: 8 knots
+  weather_conditions: clear
+  person_first_name: Jordan
+  person_last_name: Rivera
+  person_gender: Male
+  person_job_title: electrician's mate
+  person_hire_date: 05/15/2021
+  work_start_time: "7:00"
+  work_start_ampm: AM
+  body_parts: right hand and forearm
+  injury_nature: second-degree burn
+  doctor_name: Hospital Corpsman First Class Dana Kim
+  facility_name: the ship's medical department
+  er_visit: "No"
+  hospitalized: "No"
+  safety_equipment_provided: "Yes"
+  safety_equipment_used: "Yes"
+  witness_names: Petty Officer Lee and Fireman Apprentice Taylor Morgan

@@ -170,7 +170,7 @@ def load_reports(records_dir: Path = RECORDS_DIR) -> list[Report]:
             printed, editable = str(entry.get("print_pdf", "")), str(entry.get("editable_pdf", ""))
             forms.append(ReportForm(
                 str(entry["form"]), titles.get(str(entry["form"]), str(entry["form"])), int(entry.get("filled", 0)),
-                len(entry.get("notes") or []) + len(entry.get("by_hand") or []),
+                len(entry.get("notes") or []) + len(entry.get("by_hand") or []) + len(entry.get("missing") or []),
                 printed if printed and (folder / printed).is_file() else "",
                 editable if editable and (folder / editable).is_file() else ""))
         try:

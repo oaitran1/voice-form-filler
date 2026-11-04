@@ -31,6 +31,7 @@ class FormBox:
     tick_if: str = ""  # checkbox: ticked when the fact includes this option
     by_hand: bool = False  # never filled by the app (e.g. SSN)
     format: str = ""
+    required: str = ""  # "preliminary": a first report must have it; left blank → flagged after filling
 
 
 @dataclass(frozen=True)
@@ -45,11 +46,16 @@ class FormMap:
     say: tuple[str, ...] = ()  # words that pick this form out loud ("OSHA form", "Mishap"); none said = forms that fit
 
 
+REQUIRED_TAGS = frozenset({"", "preliminary", "final", "optional"})
+PRELIMINARY = "preliminary"
+
+
 @dataclass(frozen=True)
 class FilledForm:
     values: dict[str, str]  # PDF box name → value ("/On" style for buttons)
     notes: list[tuple[str, str]]  # (box, what to check)
     by_hand: list[str]  # boxes the user must fill in themself
+    missing: list[tuple[str, str]] = field(default_factory=list)  # (box, label) preliminary boxes still blank
 
 
 INJURY_FACTS = ("body_parts", "injury_description", "injury_nature")  # someone was hurt
@@ -156,7 +162,9 @@ def form_values(form: FormMap, facts: dict[str, str], boxes: dict[str, Box], tod
             values[form_box.box] = written
         if note:
             notes.append((form_box.box, note))
-    return FilledForm(values, notes, by_hand)
+    missing = [(fb.box, boxes[fb.box].tooltip or fb.box) for fb in form.boxes
+               if fb.required == PRELIMINARY and fb.box in boxes and fb.box not in values]
+    return FilledForm(values, notes, by_hand, missing)
 
 
 def _parse_box(raw: dict, known: set[str], path: Path) -> FormBox:
@@ -165,6 +173,9 @@ def _parse_box(raw: dict, known: set[str], path: Path) -> FormBox:
     unknown = [f for f in facts if f not in known]
     if unknown:
         raise ValueError(f"{path.name}: box {raw.get('box')!r} uses unknown fact(s) {unknown}")
+    required = str(raw.get("required", ""))
+    if required not in REQUIRED_TAGS:
+        raise ValueError(f"{path.name}: box {raw.get('box')!r} required={required!r} (use one of {sorted(REQUIRED_TAGS)})")
     return FormBox(
         box=str(raw["box"]),
         facts=facts,
@@ -172,6 +183,7 @@ def _parse_box(raw: dict, known: set[str], path: Path) -> FormBox:
         tick_if=str(raw.get("tick_if", "")),
         by_hand=bool(raw.get("by_hand", False)),
         format=str(raw.get("format", "")),
+        required=required,
     )
 
 

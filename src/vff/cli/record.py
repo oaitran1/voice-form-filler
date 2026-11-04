@@ -14,7 +14,7 @@ import ollama
 import sounddevice as sd
 
 from vff import transcriber
-from vff.cli.make_report import file_report
+from vff.cli.make_report import file_report, missing_line
 from vff.dashboard import write_dashboard
 from vff.export_excel import rebuild_workbook
 from vff.extract import DEFAULT_MODEL
@@ -35,7 +35,8 @@ ORDER = """Say it in this order:
   7. Safety equipment, witness, who it was reported to and when
   8. Only if it applies — returned to work, date of death
   9. Military mishap only — ship, where (at sea / port, base), the space, kind of event, times, weather, sea,
-     wind, eyewitnesses"""  # README: "What to say"
+     wind, eyewitnesses; for a preliminary report also the one-liner, the date reported to the safety office,
+     and the ISB and SIB investigators"""  # README: "What to say"
 PAUSE_SECONDS = 10.0  # thinking pauses are normal; only "stop recording" or this much silence ends the story
 
 
@@ -98,6 +99,8 @@ def main() -> int:
         _say("No safety form fits this story (no one was hurt?). The story is saved in:\n  " + str(folder))
     for result in results:
         _say(_check_line(result))
+        if result.filled.missing:
+            _say(f"  ⚑ {missing_line(result.filled.missing)}")
     try:
         workbook, _ = rebuild_workbook(RECORDS_DIR)
         _say(f"✓ Added to {workbook.relative_to(workbook.parents[1])}")

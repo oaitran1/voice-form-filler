@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600" viewBox="0 0 1600 600" font-family="-apple-system, Helvetica, Arial, sans-serif">
+<rect width="1600" height="600" fill="#ffffff"/>
+<defs><marker id="a" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#b5b3ad"/></marker></defs>
+<text x="800.0" y="78" text-anchor="middle" font-size="44" font-weight="700" fill="#16161a">Voice Form Filler</text>
+<rect x="41.0" y="160" width="270" height="360" rx="22" fill="#2a78d6" fill-opacity="0.08" stroke="#2a78d6" stroke-width="3"/>
+<circle cx="176.0" cy="238" r="46" fill="#2a78d6"/>
+<text x="176.0" y="255" text-anchor="middle" font-size="46">🎙</text>
+<text x="176.0" y="330" text-anchor="middle" font-size="27" font-weight="700" fill="#16161a">1 · Talk</text>
+<text x="176.0" y="372" text-anchor="middle" font-size="19" fill="#55544f">Say what happened.</text>
+<text x="176.0" y="402" text-anchor="middle" font-size="19" fill="#55544f">Name the form if you want:</text>
+<text x="176.0" y="432" text-anchor="middle" font-size="19" fill="#55544f">“OSHA form” · “Mishap”</text>
+<path d="M315.0,340.0 L347.0,340.0" stroke="#b5b3ad" stroke-width="4" marker-end="url(#a)"/>
+<rect x="353.0" y="160" width="270" height="360" rx="22" fill="#2a78d6" fill-opacity="0.08" stroke="#2a78d6" stroke-width="3"/>
+<circle cx="488.0" cy="238" r="46" fill="#2a78d6"/>
+<text x="488.0" y="255" text-anchor="middle" font-size="46">👂</text>
+<text x="488.0" y="330" text-anchor="middle" font-size="27" font-weight="700" fill="#16161a">2 · Listen</text>
+<text x="488.0" y="372" text-anchor="middle" font-size="19" fill="#55544f">Whisper turns the</text>
+<text x="488.0" y="402" text-anchor="middle" font-size="19" fill="#55544f">recording into text.</text>
+<text x="488.0" y="432" text-anchor="middle" font-size="19" fill="#55544f">Runs locally.</text>
+<path d="M627.0,340.0 L659.0,340.0" stroke="#b5b3ad" stroke-width="4" marker-end="url(#a)"/>
+<rect x="665.0" y="160" width="270" height="360" rx="22" fill="#eb6834" fill-opacity="0.08" stroke="#eb6834" stroke-width="3"/>
+<circle cx="800.0" cy="238" r="46" fill="#eb6834"/>
+<text x="800.0" y="255" text-anchor="middle" font-size="46">🧠</text>
+<text x="800.0" y="330" text-anchor="middle" font-size="27" font-weight="700" fill="#16161a">3 · Understand</text>
+<text x="800.0" y="372" text-anchor="middle" font-size="19" fill="#55544f">The local AI (Gemma) finds</text>
+<text x="800.0" y="402" text-anchor="middle" font-size="19" fill="#55544f">the facts for every box.</text>
+<path d="M939.0,340.0 L971.0,340.0" stroke="#b5b3ad" stroke-width="4" marker-end="url(#a)"/>
+<rect x="977.0" y="160" width="270" height="360" rx="22" fill="#1baf7a" fill-opacity="0.08" stroke="#1baf7a" stroke-width="3"/>
+<circle cx="1112.0" cy="238" r="46" fill="#1baf7a"/>
+<text x="1112.0" y="255" text-anchor="middle" font-size="46">📄</text>
+<text x="1112.0" y="330" text-anchor="middle" font-size="27" font-weight="700" fill="#16161a">4 · Fill</text>
+<text x="1112.0" y="372" text-anchor="middle" font-size="19" fill="#55544f">The right forms fill</text>
+<text x="1112.0" y="402" text-anchor="middle" font-size="19" fill="#55544f">themselves:</text>
+<text x="1112.0" y="432" text-anchor="middle" font-size="19" fill="#55544f">OSHA 301 · South Dakota</text>
+<text x="1112.0" y="462" text-anchor="middle" font-size="19" fill="#55544f">Navy Mishap Worksheet</text>
+<path d="M1251.0,340.0 L1283.0,340.0" stroke="#b5b3ad" stroke-width="4" marker-end="url(#a)"/>
+<rect x="1289.0" y="160" width="270" height="360" rx="22" fill="#6250d6" fill-opacity="0.08" stroke="#6250d6" stroke-width="3"/>
+<circle cx="1424.0" cy="238" r="46" fill="#6250d6"/>
+<text x="1424.0" y="255" text-anchor="middle" font-size="46">📊</text>
+<text x="1424.0" y="330" text-anchor="middle" font-size="27" font-weight="700" fill="#16161a">5 · Keep</text>
+<text x="1424.0" y="372" text-anchor="middle" font-size="19" fill="#55544f">Saved as a report,</text>
+<text x="1424.0" y="402" text-anchor="middle" font-size="19" fill="#55544f">added to the Excel tracker,</text>
+<text x="1424.0" y="432" text-anchor="middle" font-size="19" fill="#55544f">watched on the dashboard.</text>
+</svg>
