@@ -14,15 +14,16 @@ import yaml
 
 from vff.boxes import read_boxes
 from vff.export_excel import Layout, _answered, _cell, load_layouts, read_pdf
-from vff.forms import FormMap, applies, form_values, load_forms
-from vff.incident import story_template, with_company
+from vff.forms import FormMap, applies, form_values, forms_said, load_forms
+from vff.incident import spoken_templates, with_company
 from vff.paths import DATA_TRACKER_DIR, ROOT, TEMPLATES_DIR
 
 SCRIPTS_DIR = ROOT / "live_test" / "scripts"
 RESULTS_DIR = ROOT / "live_test" / "results"
 TEST_WORKBOOK = DATA_TRACKER_DIR / "live_test.xlsx"  # the latest live test; never mixed with real reports
 TEST_PROFILE = TEMPLATES_DIR / "examples" / "company_profile.yaml"  # same company every run, so answers are known
-READ_BY_EYE = frozenset({"injury_cause"})  # short, but said many ways ("wet floor", "the wet kitchen floor")
+READ_BY_EYE = frozenset({"injury_cause", "mishap_event_type"})  # short, but said many ways ("wet floor",
+# "the wet kitchen floor"; "electrical fire", "small electrical fire inside the junction box")
 RIGHT, WRONG, LOOK = "✓", "✗", "👁"
 
 
@@ -54,7 +55,7 @@ class FormCheck:
 
 
 def load_scripts(folder: Path = SCRIPTS_DIR) -> list[Script]:
-    known = {f.key for f in story_template().fields}
+    known = {f.key for t in spoken_templates() for f in t.fields}
     scripts = []
     for path in sorted(Path(folder).glob("*.yaml")):
         raw = yaml.safe_load(path.read_text()) or {}
@@ -70,7 +71,7 @@ def load_scripts(folder: Path = SCRIPTS_DIR) -> list[Script]:
 
 
 def _by_eye_boxes(form: FormMap) -> set[str]:
-    written = {f.key for f in story_template().fields if f.kind == "text"} | READ_BY_EYE
+    written = {f.key for t in spoken_templates() for f in t.fields if f.kind == "text"} | READ_BY_EYE
     return {b.box for b in form.boxes if set(b.facts) & written}
 
 
@@ -104,10 +105,11 @@ def check_report(script: Script, folder: Path, profile: dict[str, str], today: s
     """Every form the script's story should fill (and any the app filled anyway), box by box."""
     facts = with_company(script.facts, profile)
     layouts = {layout.form: layout for layout in load_layouts()}
+    named = {f.id for f in forms_said(script.text, load_forms())}
     checks = []
     for form in load_forms():
         pdf = folder / f"{form.id}_filled.pdf"
-        should = applies(form, facts)
+        should = form.id in named if named else applies(form, facts)
         if not should and not pdf.exists():
             continue
         boxes = {b.name: b for b in read_boxes(form.pdf_path)}

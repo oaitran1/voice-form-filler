@@ -29,10 +29,12 @@ import ollama
 import sounddevice as sd
 
 from vff import transcriber
+from vff.dashboard import write_dashboard
 from vff.export_excel import rebuild_workbook
 from vff.extract import DEFAULT_MODEL
-from vff.forms import applies, load_forms
-from vff.incident import PROFILE_PATH, build_record, fact_values, fill_forms, load_profile, story_template
+from vff.forms import applies, forms_said, load_forms, needed_groups
+from vff.incident import (PROFILE_PATH, build_record, fact_values, fill_forms, load_profile, spoken_templates,
+                          story_template)
 from vff.media import transcript_from_file
 from vff.paths import RECORDS_DIR
 from vff.system import speak
@@ -74,7 +76,9 @@ def print_answers(template, answers: dict[str, dict]) -> None:
             print(f"✗ {field.label}: (blank) — {a['note']}")
 
 
-def _chosen_forms(wanted: str, facts: dict[str, str]):
+def named_forms(wanted: str, transcript: str) -> list:
+    """Forms picked before the facts are known: --forms ids, else the forms named out loud ("Mishap", "OSHA form").
+    Empty = nothing named → every form the facts fit (decided after the facts are found)."""
     forms = load_forms()
     if wanted:
         ids = {w.strip() for w in wanted.split(",") if w.strip()}
@@ -82,7 +86,11 @@ def _chosen_forms(wanted: str, facts: dict[str, str]):
         if unknown:
             raise ValueError(f"Unknown form(s) {sorted(unknown)}. Available: {', '.join(f.id for f in forms)}.")
         return [f for f in forms if f.id in ids]
-    return [f for f in forms if applies(f, facts)]
+    return forms_said(transcript, forms)
+
+
+def _chosen_forms(named: list, facts: dict[str, str]) -> list:
+    return named or [f for f in load_forms() if applies(f, facts)]
 
 
 def _print_form_results(results, verbose: bool = True) -> list[dict]:
@@ -107,13 +115,16 @@ def file_report(transcript: str, source: str, model: str, profile: dict[str, str
     """Story text → checked facts → every form that applies, filled and saved in a new folder of `records_dir`.
     Returns (the saved folder, the filled forms). This is the one path every report takes."""
     facts_template = story_template()
+    named = named_forms(wanted_forms, transcript)
     if verbose:
+        print(f"Forms named: {', '.join(f.id for f in named)}" if named else "No form named: every form that fits")
         print(f"Finding the facts with {model} (offline)…")
-    answers = build_record(transcript, model)
+    answers = build_record(transcript, model, groups=needed_groups(named) if named else None)
     if verbose:
-        print_answers(facts_template, answers)
+        for template in spoken_templates():
+            print_answers(template, answers)
     facts = fact_values(answers, profile)
-    forms = _chosen_forms(wanted_forms, facts)
+    forms = _chosen_forms(named, facts)
     now = datetime.now()
     folder = save_record(records_dir, name, facts_template.title, transcript, answers, source,
                          "filled (not read back)", now)
@@ -149,6 +160,11 @@ def _update_workbook() -> None:
         return
     counts = ", ".join(f"{sheet} {rows}" for sheet, rows in summary.items())
     print(f"Workbook updated: {out} ({counts})")
+    try:
+        dashboard, _, _ = write_dashboard()
+        print(f"Dashboard updated: {dashboard}")
+    except OSError as err:
+        print(f"⚠ The dashboard wasn't updated ({err}); run `uv run dashboard`.")
 
 
 def main() -> int:
@@ -171,12 +187,16 @@ def main() -> int:
         print(f"Whisper model ready at: {transcriber.download_model()}")
         return 0
     if args.list:
-        print("Forms (one story fills all):", ", ".join(f"{f.id} [{f.status}]" for f in load_forms()))
+        print("Forms (say one to fill only it; say none and every form that fits is filled):")
+        for f in load_forms():
+            print(f"  {f.id} [{f.status}] — say: {' / '.join(f.say) or '(no say-words)'}")
         return 0
     if args.brief:
         try:
             print(briefing(story_template()))
-            print("\nForms it fills:", ", ".join(f.title for f in load_forms()))
+            print("\nForms it fills (say the form's name to fill only it):")
+            for f in load_forms():
+                print(f"  {f.title} — say: {' / '.join(f.say)}")
         except (FileNotFoundError, ValueError) as err:
             print(f"Stopped: {err}", file=sys.stderr)
             return 2

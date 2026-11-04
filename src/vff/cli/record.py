@@ -15,6 +15,7 @@ import sounddevice as sd
 
 from vff import transcriber
 from vff.cli.make_report import file_report
+from vff.dashboard import write_dashboard
 from vff.export_excel import rebuild_workbook
 from vff.extract import DEFAULT_MODEL
 from vff.incident import PROFILE_PATH, load_profile
@@ -24,6 +25,7 @@ from vff.triggers import parse_stop_phrases
 from vff.voice import listen, start_on_enter_or_phrase
 
 ORDER = """Say it in this order:
+  0. Which form — "OSHA form", "South Dakota form" or "Mishap" (say none: every form that fits)
   1. Who you are — name, job title, phone
   2. Who got hurt — name, job, address, date of birth, date hired
   3. When — the date, when they started work, when it happened (a.m./p.m.)
@@ -31,7 +33,9 @@ ORDER = """Say it in this order:
   5. What happened — what they were doing, what happened, the injury and body part (left/right)
   6. Treatment — clinic or hospital, doctor, ER yes/no, kept overnight yes/no
   7. Safety equipment, witness, who it was reported to and when
-  8. Only if it applies — returned to work, date of death"""  # README: "What to say"
+  8. Only if it applies — returned to work, date of death
+  9. Military mishap only — ship, where (at sea / port, base), the space, kind of event, times, weather, sea,
+     wind, eyewitnesses"""  # README: "What to say"
 PAUSE_SECONDS = 10.0  # thinking pauses are normal; only "stop recording" or this much silence ends the story
 
 
@@ -97,6 +101,8 @@ def main() -> int:
     try:
         workbook, _ = rebuild_workbook(RECORDS_DIR)
         _say(f"✓ Added to {workbook.relative_to(workbook.parents[1])}")
+        dashboard, _, _ = write_dashboard()
+        _say(f"✓ Dashboard updated: {dashboard.relative_to(dashboard.parents[1])}")
     except (OSError, ValueError) as err:
         _say(f"⚠ The Excel file wasn't updated ({err}). The forms are saved; run `uv run add-old-pdfs` to catch up.")
     for result in results:

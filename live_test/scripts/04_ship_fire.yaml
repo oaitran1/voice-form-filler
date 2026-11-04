@@ -1,0 +1,50 @@
+title: Ship electrical fire — Navy mishap worksheet (from data/example photos)
+hints: USS Example, Mayport, Jordan Lee, Taylor Morgan, Auxiliary Machinery Room
+script: >
+  Mishap. On 14 October 2026, at approximately 2135 local time, USS Example was underway in the Atlantic Ocean conducting
+  routine operations. The ship was approximately 40 nautical miles east of Naval Station Mayport, Florida.
+  During an engineering-space inspection, Petty Officer Second Class Jordan Lee noticed a burning odor and light smoke
+  coming from an electrical junction box in Auxiliary Machinery Room Number Two. Lee immediately notified the
+  Engineering Officer of the Watch over the sound-powered phone and activated the local alarm.
+  At approximately 2137, the Engineering Officer of the Watch directed the space to be evacuated and secured electrical
+  power to the affected equipment. The repair locker team responded with an investigator, hose team, and scene leader.
+  The fire was determined to be a small electrical fire inside the junction box. The hose team used one portable CO2
+  extinguisher to extinguish the fire at approximately 2143.
+  No personnel were injured. One Sailor reported minor smoke irritation but did not require emergency-room treatment or
+  hospitalization. The ship's independent duty corpsman conducted an on-scene evaluation and released the Sailor back to duty.
+  The affected junction box supplied power to a ventilation fan. Preliminary inspection showed heat damage to internal
+  wiring insulation and a loose electrical connection. The ventilation fan and junction box were tagged out pending
+  maintenance inspection. No other ship systems were damaged.
+  Weather conditions were clear with calm seas. Visibility was unrestricted. The temperature was approximately
+  76 degrees Fahrenheit, with winds from the northeast at 8 knots.
+  The Command Duty Officer, Commanding Officer, and ship's safety officer were notified. The fire was reported to be
+  out, the space was ventilated, and normal access was restored after the repair locker and engineering department
+  completed an initial inspection.
+  Two eyewitnesses were present: Petty Officer Lee, who discovered the smoke, and Fireman Apprentice Taylor Morgan, who
+  was conducting the engineering-space inspection with Lee. The initial known facts are that the fire originated in the
+  electrical junction box, power was secured promptly, and the repair locker extinguished the fire without injury or
+  significant damage.
+  Items requiring verification include the exact cause of the loose connection, the total repair cost, whether prior
+  maintenance discrepancies existed for the ventilation fan circuit, and whether any risk-management controls should
+  have identified the electrical hazard.
+# The right answers, written the way the forms want them. Anything not listed should stay blank:
+# nobody named was hurt (no person_* facts), "Class C" is a classification the story never says (event type is read by
+# eye), the country and lighting are never said, nothing says training / combat zone / environment factor.
+facts:
+  incident_types: Property damage
+  incident_date: 10/14/2026
+  incident_time: "2135"
+  er_visit: "No"
+  hospitalized: "No"
+  ship_name: USS Example
+  general_location: approximately 40 nautical miles east of Naval Station Mayport, Florida
+  location_description: Auxiliary Machinery Room Number Two
+  nearest_base: Naval Station Mayport
+  visibility_conditions: unrestricted
+  sea_state: calm seas
+  wind_direction: northeast
+  wind_speed: 8 knots
+  weather_conditions: clear
+  eyewitnesses: "Yes"
+  witness_names: Petty Officer Lee, Fireman Apprentice Taylor Morgan
+  mishap_event_type: electrical fire

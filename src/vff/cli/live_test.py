@@ -25,6 +25,7 @@ from vff.cli.make_report import file_report
 from vff.export_excel import rebuild_workbook
 from vff.extract import DEFAULT_MODEL
 from vff.incident import load_profile
+from vff.dashboard import write_dashboard
 from vff.live_test import RESULTS_DIR, TEST_PROFILE, TEST_WORKBOOK, check_report, load_scripts, write_results
 from vff.system import show, speak
 from vff.storage import private_folder
@@ -116,7 +117,13 @@ def main() -> int:
     workbook, _ = rebuild_workbook(run_dir, out=TEST_WORKBOOK)
     results, right, wrong, look = write_results(run_dir, rows, started)
     print(f"\n{'=' * 78}\nLIVE TEST: {right} of {right + wrong} boxes right, {wrong} wrong, {look} to read yourself.")
-    print(f"Results: {results}\nExcel:   {workbook}\n{'=' * 78}")
+    print(f"Results: {results}\nExcel:   {workbook}")
+    try:
+        dashboard, _, _ = write_dashboard()
+        print(f"Dashboard: {dashboard} (updated; an open page reloads by itself)")
+    except OSError as err:
+        print(f"⚠ The dashboard wasn't updated ({err}); run `uv run dashboard`.")
+    print("=" * 78)
     speak(f"Done. {right} of {right + wrong} boxes right.")
     if not args.no_open:
         show(run_dir)  # the results folder

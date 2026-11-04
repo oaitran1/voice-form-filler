@@ -6,6 +6,7 @@ pdf: sd_froi.pdf
 applies_when:
 - Injury
 - Fatality
+say: [South Dakota form, SD form, first report of injury]
 status: approved
 boxes:
 - box: Item.BPI

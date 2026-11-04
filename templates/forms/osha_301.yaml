@@ -3,6 +3,7 @@ id: osha_301
 title: OSHA 301 Injury and Illness Incident Report
 pdf: osha_301.pdf
 applies_when: [Injury, Illness, Fatality]
+say: [OSHA form, OSHA 301, OSHA]
 status: approved
 boxes:
   - {box: 301 Full name, fact: [person_first_name, person_middle_initial, person_last_name]}

@@ -41,6 +41,8 @@ class FormMap:
     applies_when: tuple[str, ...]  # kinds of incident this form is for; empty = always
     boxes: tuple[FormBox, ...]
     status: str = "draft"  # draft (auto-made, not yet reviewed) | approved
+    needs_any: tuple[str, ...] = ()  # only when at least one of these facts was said (e.g. a ship name)
+    say: tuple[str, ...] = ()  # words that pick this form out loud ("OSHA form", "Mishap"); none said = forms that fit
 
 
 @dataclass(frozen=True)
@@ -54,6 +56,8 @@ INJURY_FACTS = ("body_parts", "injury_description", "injury_nature")  # someone 
 
 
 def applies(form: FormMap, facts: dict[str, str]) -> bool:
+    if form.needs_any and not any(facts.get(key) for key in form.needs_any):
+        return False
     said = {t.strip().lower() for t in facts.get("incident_types", "").split(MULTI_SEPARATOR) if t.strip()}
     if not form.applies_when or not said:
         return True
@@ -62,6 +66,19 @@ def applies(form: FormMap, facts: dict[str, str]) -> bool:
     # the AI may tag a crash "Vehicle" only although someone was hurt ("his neck was sore"): injury forms still apply
     injury_form = "injury" in {kind.lower() for kind in form.applies_when}
     return injury_form and any(facts.get(key) for key in INJURY_FACTS)
+
+
+def forms_said(transcript: str, forms: list[FormMap]) -> list[FormMap]:
+    """The forms named in the recording by their say-words (any case, whole words). Empty = none named."""
+    words = " ".join(re.findall(r"[a-z0-9]+", transcript.lower()))
+    return [f for f in forms if any(re.search(rf"\b{re.escape(' '.join(re.findall(r'[a-z0-9]+', s.lower())))}\b", words)
+                                    for s in f.say)]
+
+
+def needed_groups(forms: list[FormMap], facts_path: Path = FACTS_PATH) -> frozenset[str]:
+    """The fact groups these forms use (story, company, mishap) — the questions worth asking for them."""
+    group_of = {f.key: f.group for f in load_template(facts_path).fields}
+    return frozenset(group_of[key] for form in forms for box in form.boxes for key in box.facts if key in group_of)
 
 
 def _state_name(state: str) -> str:
@@ -166,6 +183,9 @@ def load_form(path: Path, facts_path: Path = FACTS_PATH) -> FormMap:
         if required not in raw:
             raise ValueError(f"{path.name}: missing {required!r}")
     known = {f.key for f in load_template(facts_path).fields} | SPECIAL_FACTS
+    needs_any = tuple(str(k) for k in raw.get("needs_any", []))
+    if unknown := [k for k in needs_any if k not in known]:
+        raise ValueError(f"{path.name}: needs_any uses unknown fact(s) {unknown}")
     pdf = (path.parent / raw["pdf"]).resolve() if raw.get("pdf") else None
     if pdf is not None and not pdf.exists():
         raise ValueError(f"{path.name}: PDF not found at {pdf}")
@@ -174,6 +194,8 @@ def load_form(path: Path, facts_path: Path = FACTS_PATH) -> FormMap:
         title=str(raw["title"]),
         pdf_path=pdf,
         applies_when=tuple(str(k) for k in raw.get("applies_when", [])),
+        needs_any=needs_any,
+        say=tuple(str(s) for s in raw.get("say", [])),
         boxes=tuple(_parse_box(b, known, path) for b in raw["boxes"]),
         status=str(raw.get("status", "draft")),
     )

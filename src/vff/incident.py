@@ -24,6 +24,8 @@ from vff.templates import Template, load_template
 PROFILE_PATH = DATA_DIR / "profile.yaml"
 COMPANY_DESCRIPTION = ("The company this report is for — only what is said about the company itself. "
                        "Leave everything blank if the company's own name is not said.")
+MISHAP_DESCRIPTION = ("A military (Navy / DoD) mishap: a ship, unit, command or base. "
+                      "Leave EVERYTHING blank if the story is about a civilian workplace.")
 
 
 @dataclass(frozen=True)
@@ -47,16 +49,31 @@ def company_template(facts_path: Path = FACTS_PATH) -> Template:
                    fields=tuple(f for f in facts.fields if f.group == "company"))
 
 
+def mishap_template(facts_path: Path = FACTS_PATH) -> Template:
+    """The military-mishap facts, asked as their own question so the story question stays the same."""
+    facts = load_template(facts_path)
+    return replace(facts, description=MISHAP_DESCRIPTION, rules=(),
+                   fields=tuple(f for f in facts.fields if f.group == "mishap"))
+
+
+def spoken_templates(facts_path: Path = FACTS_PATH) -> tuple[Template, ...]:
+    """Every question answered from the recording itself (not the company profile)."""
+    return story_template(facts_path), mishap_template(facts_path)
+
+
 def company_keys(facts_path: Path = FACTS_PATH) -> frozenset[str]:
     return frozenset(f.key for f in company_template(facts_path).fields)
 
 
 def build_record(transcript: str, model: str = DEFAULT_MODEL, client=None,
-                 facts_path: Path = FACTS_PATH) -> dict[str, dict]:
+                 facts_path: Path = FACTS_PATH, groups: frozenset[str] | None = None) -> dict[str, dict]:
     """Story → checked facts: AI draft, proof check against the words, AM/PM, formats.
-    Then the company facts, in case the company's own details are said."""
+    Then the company facts, in case the company's own details are said; then the military-mishap facts.
+    `groups` = which of those extra questions to ask (the groups the chosen forms use); None = all of them."""
     answers = {}
-    for template in (story_template(facts_path), company_template(facts_path)):
+    extra = [t for t in (company_template(facts_path), mishap_template(facts_path))
+             if groups is None or t.fields[0].group in groups]
+    for template in (story_template(facts_path), *extra):
         draft = extract_fields(transcript, template, model=model, client=client)
         checked = fill_ampm(template, check_answers(template, draft, transcript), transcript)
         answers |= apply_formats(template, checked, pdf_formats={})

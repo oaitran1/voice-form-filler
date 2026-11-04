@@ -136,3 +136,28 @@ fields:
   - {key: employer_employee_count, label: Number of employees, group: company}
   - {key: insurer_name, label: "Workers' comp insurance company", group: company}
   - {key: policy_number, label: Insurance policy number, group: company}
+
+  # --- military mishap (Navy / DoD worksheet) — asked as its own question; all blank for a civilian workplace ---
+  - {key: mishap_event_type, label: "Kind of military mishap event, e.g. Class C afloat fire, aviation ground mishap", group: mishap,
+     hint: "Only for a ship, unit, command or base; blank for a civilian workplace"}
+  - {key: mishap_one_liner, label: One sentence saying what the event was, kind: text, group: mishap}
+  - {key: ship_name, label: "Ship name, e.g. USS Example", group: mishap}
+  - {key: event_port, label: Port the ship was in (only if in port), group: mishap}
+  - {key: general_location, label: "General location, e.g. at sea, 40 nautical miles east of Mayport, Florida", group: mishap}
+  - {key: location_description, label: "Exact place on the ship or base, e.g. Auxiliary Machinery Room Number Two", group: mishap}
+  - {key: nearest_base, label: Base where it happened or the nearest base, group: mishap}
+  - {key: country, label: "Country where it happened, e.g. United States", group: mishap,
+     hint: "A country only — never a state, city or ocean; blank if no country is said"}
+  - {key: latitude_longitude, label: Latitude and longitude, group: mishap}
+  - {key: lighting_conditions, label: "Lighting, e.g. daylight, night, artificial light", group: mishap}
+  - {key: visibility_conditions, label: "Visibility, e.g. unrestricted, fog", group: mishap}
+  - {key: sea_state, label: "Sea state, e.g. calm seas, moderate swells", group: mishap}
+  - {key: wind_direction, label: "Wind direction, e.g. northeast", group: mishap}
+  - {key: wind_speed, label: "Wind speed, e.g. 8 knots", group: mishap}
+  - {key: weather_conditions, label: "Weather, e.g. clear, rain, 76 degrees", group: mishap}
+  - {key: eyewitnesses, label: "Were there any eyewitnesses?", kind: choice, options: ["Yes", "No"], group: mishap}
+  - {key: during_training, label: "Did it happen during training?", kind: choice, options: ["Yes", "No"], group: mishap}
+  - {key: combat_zone, label: "Did it happen in a combat zone?", kind: choice, options: ["Yes", "No"], group: mishap}
+  - {key: environment_factor, label: "Was the environment (weather, sea, lighting) a factor?", kind: choice, options: ["Yes", "No"], group: mishap}
+  - {key: sequence_of_events, label: "The sequence of events with their times, in order", kind: text, group: mishap,
+     hint: "e.g. 2135 smoke noticed; 2137 space evacuated, power secured; 2143 fire out"}

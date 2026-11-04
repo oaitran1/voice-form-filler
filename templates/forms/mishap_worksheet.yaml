@@ -1,0 +1,280 @@
+# Mishap Information Worksheet (Navy / DoD, AFSAS-style) — rebuilt as a fillable PDF from screen photos 2026-11-04.
+# Box → fact map written by hand. Left blank on purpose: investigator sections (Risk Management, Human Factors, Cost,
+# Findings/Recs, OFS/ORS, Exhibits except the witness list), Persons rows a story never carries (DOD ID, grade, AFSC …).
+# No event-date box was photographed (the worksheet's first page is missing) — incident_date has nowhere to go yet.
+# Fills only for a military story: needs_any = a ship, a base, or a mishap event type was said.
+id: mishap_worksheet
+title: Mishap Information Worksheet
+pdf: mishap_worksheet.pdf
+status: draft
+needs_any: [ship_name, nearest_base, mishap_event_type]
+say: [Mishap, Mishap worksheet, Mishap form]
+boxes:
+  - {box: General_Information.Event_Type__Secondary_Tiers, fact: mishap_event_type}
+  - {box: General_Information.Local_Time, fact: [incident_time, incident_ampm]}
+  - {box: General_Information.Date_Report_To_Safety_Office__Local, fact: reported_date}
+  - {box: General_Information.One_Liner, fact: mishap_one_liner}
+  - {box: General_Information.Did_this_event_occur_in_a_combat_zone, fact: combat_zone}
+  - {box: General_Information.Did_this_mishap_occur_during_training, fact: during_training}
+  - {box: General_Information.Were_there_any_eyewitnesses_to_this_event, fact: eyewitnesses}
+  - {box: General_Information.Was_the_environment_a_factor_to_this_event, fact: environment_factor}
+  - {box: Location.Event_Port, fact: event_port}
+  - {box: Location.Event_ship_name, fact: ship_name}
+  - {box: Location.General_Location, fact: general_location}
+  - {box: Location.Location_Description, fact: location_description}
+  - {box: Location.Latitude___Longitude, fact: latitude_longitude}
+  - {box: Location.Base_where_Event_Occurred_or_Nearest_Base, fact: nearest_base}
+  - {box: Location.Country, fact: country}
+  - {box: Environment.Lighting_Conditions, fact: lighting_conditions}
+  - {box: Environment.Visibility_Conditions, fact: visibility_conditions}
+  - {box: Environment.Sea_State, fact: sea_state}
+  - {box: Environment.Wind_Direction, fact: wind_direction}
+  - {box: Environment.Wind_Speed, fact: wind_speed}
+  - {box: Environment.Weather_Conditions, fact: weather_conditions}
+  - {box: Persons.Person_s_Name, fact: [person_first_name, person_middle_initial, person_last_name]}
+  - {box: Persons.Date_Hired, fact: person_hire_date}
+  - {box: Persons.Sex, fact: person_gender}
+  - {box: Persons.Activity, fact: activity_before}
+  - {box: Persons.Provider_Information, fact: [doctor_name, facility_name]}
+  - {box: Persons.Was_injured_person_treated_in_an_emergency_room, fact: er_visit}
+  - {box: Persons.Was_injured_person_hospitalized_overnight_as_an_in_patient__not_observation_diagnostic_care, fact: hospitalized}
+  - {box: Persons.Role, fact: person_job_title}
+  - {box: Persons.Time_person_began_work, fact: [work_start_time, work_start_ampm]}
+  - {box: Persons.Injured_Body_Part, fact: body_parts}
+  - {box: Persons.Injury_Type, fact: injury_nature}
+  - {box: Persons.Injury_Mechanism, fact: injury_cause}
+  - {box: Persons.Was_safety_equipment_available, fact: safety_equipment_provided}
+  - {box: Persons.Was_safety_equipment_used, fact: safety_equipment_used}
+  - {box: Narrative.Preliminary_and_Status_Message_Narrative, fact: what_happened}
+  - {box: Narrative.Sequence_of_Event, fact: sequence_of_events}
+  - {box: Exhibits.Exhibit__Witness_List, fact: witness_names}
+
+# Every box on the page, in the paper's order, under the paper's section titles (uv run add-old-pdfs).
+excel:
+  sheet: Mishap Worksheet
+  sections:
+    - title: 'General Information'
+      columns:
+        - {box: General_Information.Event_ISB_Investigator, label: 'Event ISB Investigator'}
+        - {box: General_Information.Event_SIB_Investigator, label: 'Event SIB Investigator'}
+        - {box: General_Information.Event_Type__Secondary_Tiers, label: 'Event Type (Secondary Tiers)'}
+        - {box: General_Information.Mishap_Non_Reportable_Reference, label: 'Mishap Non-Reportable Reference'}
+        - {box: General_Information.Local_Time, label: 'Local Time'}
+        - {box: General_Information.Time_of_Day, label: 'Time of Day'}
+        - {box: General_Information.Date_Report_To_Safety_Office__Local, label: 'Date Report To Safety Office, Local'}
+        - {box: General_Information.Unit_Control_Number, label: 'Unit Control Number'}
+        - {box: General_Information.Convening_Authority, label: 'Convening Authority'}
+        - {box: General_Information.Accounting_Organization, label: 'Accounting Organization'}
+        - {box: General_Information.One_Liner, label: 'One-Liner'}
+        - {box: General_Information.Did_the_event_occur_in_support_of_an_operational_contingency, label: 'Did the event occur in support of an operational contingency?'}
+        - {box: General_Information.Did_this_event_occur_in_a_combat_zone, label: 'Did this event occur in a combat zone?'}
+        - {box: General_Information.Did_this_mishap_occur_during_training, label: 'Did this mishap occur during training?'}
+        - {box: General_Information.Was_basic_training_an_issue, label: 'Was basic training an issue?'}
+        - {box: General_Information.Did_the_event_occur_during_the_official_Fitness_Assessment, label: 'Did the event occur during the official Fitness Assessment?'}
+        - {box: General_Information.Did_the_event_occur_during_mandatory_Physical_Training__P_T, label: 'Did the event occur during mandatory Physical Training (P/T)?'}
+        - {box: General_Information.DOD_personnel_injured_or_DOD_resources_damaged_during_contractor_operations, label: 'DOD personnel injured or DOD resources damaged during contractor operations'}
+        - {box: General_Information.Is_this_a_Research___Development__R_D__event, label: 'Is this a Research & Development (R&D) event?'}
+        - {box: General_Information.Location_temporarily_withheld_due_to_Operational_Security, label: 'Location temporarily withheld due to Operational Security'}
+        - {box: General_Information.Were_there_any_eyewitnesses_to_this_event, label: 'Were there any eyewitnesses to this event?'}
+        - {box: General_Information.Did_event_occur_during_a_structured_exercise, label: 'Did event occur during a structured exercise?'}
+        - {box: General_Information.Was_this_event_the_result_of_friendly_fire, label: 'Was this event the result of friendly fire?'}
+        - {box: General_Information.Was_the_environment_a_factor_to_this_event, label: 'Was the environment a factor to this event'}
+        - {box: General_Information.Referenced_Reports, label: 'Referenced Reports'}
+    - title: 'Location'
+      columns:
+        - {box: Location.Event_Port, label: 'Event Port'}
+        - {box: Location.Event_ship_name, label: 'Event ship name'}
+        - {box: Location.General_Location, label: 'General Location'}
+        - {box: Location.Location_Description, label: 'Location Description'}
+        - {box: Location.Latitude___Longitude, label: 'Latitude / Longitude'}
+        - {box: Location.Base_where_Event_Occurred_or_Nearest_Base, label: 'Base where Event Occurred or Nearest Base'}
+        - {box: Location.Country, label: 'Country'}
+        - {box: Location.State___Unable_to_Determine, label: 'State - Unable to Determine'}
+        - {box: Location.Area_of_Responsibility__AOR, label: 'Area of Responsibility (AOR)'}
+    - title: 'Environment'
+      columns:
+        - {box: Environment.Lighting_Conditions, label: 'Lighting Conditions'}
+        - {box: Environment.Visibility_Conditions, label: 'Visibility Conditions'}
+        - {box: Environment.Visibility_Distance, label: 'Visibility Distance'}
+        - {box: Environment.Sea_Direction, label: 'Sea Direction'}
+        - {box: Environment.Sea_State, label: 'Sea State'}
+        - {box: Environment.Wind_Direction, label: 'Wind Direction'}
+        - {box: Environment.Wind_Direction_Bearing, label: 'Wind Direction Bearing'}
+        - {box: Environment.Wind_Speed, label: 'Wind Speed'}
+        - {box: Environment.Wind_Gusts, label: 'Wind Gusts'}
+        - {box: Environment.Surface_Conditions, label: 'Surface Conditions'}
+        - {box: Environment.Environment_Surface, label: 'Environment Surface'}
+        - {box: Environment.Weather_Conditions, label: 'Weather Conditions'}
+    - title: 'Risk Management'
+      columns:
+        - {box: Risk_Management.Were_any_areas_of_the_risk_management_planning_found_to_be_deficient, label: 'Were any areas of the risk management planning found to be deficient?'}
+        - {box: Risk_Management.Identify_the_Risk_Management_Problem_areas, label: 'Identify the Risk Management Problem areas'}
+        - {box: Risk_Management.What_type_of_risk_management_planning_was_accomplished_prior_to_the_event, label: 'What type of risk management planning was accomplished prior to the event?'}
+        - {box: Risk_Management.Deliberate_or_Real_Time_Risk_Management_processes_were, label: 'Deliberate or Real-Time Risk Management processes were'}
+    - title: 'Persons'
+      columns:
+        - {box: Persons.Was_this_person_a_factor_in_the_event, label: 'Was this person a factor in the event?'}
+        - {box: Persons.Was_this_person_injured_in_the_event, label: 'Was this person injured in the event?'}
+        - {box: Persons.Was_this_person_an_operator_of_an_object_that_caused_or_received_damage, label: 'Was this person an operator of an object that caused or received damage?'}
+        - {box: Persons.Was_this_person_interviewed, label: 'Was this person interviewed?'}
+        - {box: Persons.Person_s_Name, label: 'Person''s Name'}
+        - {box: Persons.Is_the_illness_the_results_of_voluntary_partic__in_a_wellness_program_or_a_medical__rec__activity, label: 'Is the illness the results of voluntary partic. in a wellness program or a medical, rec. activity?'}
+        - {box: Persons.Has_this_person_requested_that_their_name_not_appear_on_the_OSHA_300_log, label: 'Has this person requested that their name not appear on the OSHA 300 log?'}
+        - {box: Persons.Employment_Status, label: 'Employment Status'}
+        - {box: Persons.What_was_the_type_of_training_evolution, label: 'What was the type of training evolution?'}
+        - {box: Persons.Was_this_a_High_Risk_Training_event, label: 'Was this a High-Risk Training event?'}
+        - {box: Persons.Did_the_incident_occur_during_a_formal_CIN_CID_course, label: 'Did the incident occur during a formal CIN/CID course?'}
+        - {box: Persons.What_was_the_CIN_CID, label: 'What was the CIN/CID?'}
+        - {box: Persons.Was_an_Emergency_Action_Plan__EAP__available, label: 'Was an Emergency Action Plan (EAP) available?'}
+        - {box: Persons.Command_that_was_executing_the_training, label: 'Command that was executing the training:'}
+        - {box: Persons.Date__First_Interviewed, label: 'Date (First Interviewed)'}
+        - {box: Persons.Person_Background_Information, label: 'Person Background Information'}
+        - {box: Persons.DOD_ID, label: 'DOD ID'}
+        - {box: Persons.Grade, label: 'Grade'}
+        - {box: Persons.Assigned_Base, label: 'Assigned Base'}
+        - {box: Persons.Assigned_Organization, label: 'Assigned Organization'}
+        - {box: Persons.AFSC, label: 'AFSC'}
+        - {box: Persons.AFSC_Skill_Level, label: 'AFSC Skill Level'}
+        - {box: Persons.Age, label: 'Age'}
+        - {box: Persons.Date_Hired, label: 'Date Hired'}
+        - {box: Persons.Sex, label: 'Sex'}
+        - {box: Persons.Duty_Status, label: 'Duty Status'}
+        - {box: Persons.Duty_Status_Tier_2, label: 'Duty Status Tier 2'}
+        - {box: Persons.Injury_Severity, label: 'Injury Severity'}
+        - {box: Persons.Days_Away_from_Work, label: 'Days Away from Work'}
+        - {box: Persons.Restricted_Work_Days, label: 'Restricted Work Days'}
+        - {box: Persons.Transferred_Work_Days, label: 'Transferred Work Days'}
+        - {box: Persons.Is_the_injury_the_result_of_a_sexual_assault, label: 'Is the injury the result of a sexual assault?'}
+        - {box: Persons.Activity, label: 'Activity'}
+        - {box: Persons.Was_Safety_Equipment_used_or_required, label: 'Was Safety Equipment used or required?'}
+        - {box: Persons.Provider_Information, label: 'Provider Information'}
+        - {box: Persons.Was_injured_person_treated_in_an_emergency_room, label: 'Was injured person treated in an emergency room?'}
+        - {box: Persons.Were_alcohol__drugs__or_toxins_a_factor, label: 'Were alcohol, drugs, or toxins a factor?'}
+        - {box: Persons.Military_Occupational_Specialties, label: 'Military Occupational Specialties'}
+        - {box: Persons.Were_toxicology_tests_accomplished, label: 'Were toxicology tests accomplished?'}
+        - {box: Persons.Navy_enlisted_rating, label: 'Navy enlisted rating'}
+        - {box: Persons.Navy_Enlisted_Classification, label: 'Navy Enlisted Classification'}
+        - {box: Persons.Are_any_toxicology_test_results_pending, label: 'Are any toxicology test results pending?'}
+        - {box: Persons.Were_Toxicology_Test_Results, label: 'Were Toxicology Test Results?'}
+        - {box: Persons.Navy_Officer_Billet_Classification, label: 'Navy Officer Billet Classification'}
+        - {box: Persons.Was_this_person_a_student_at_the_time_of_the_event, label: 'Was this person a student at the time of the event?'}
+        - {box: Persons.Naval_Officer_Designator, label: 'Naval Officer Designator'}
+        - {box: Persons.Was_injured_person_hospitalized_overnight_as_an_in_patient__not_observation_diagnostic_care, label: 'Was injured person hospitalized overnight as an in-patient (not observation/diagnostic care)?'}
+        - {box: Persons.Was_this_person_on_flying_status, label: 'Was this person on flying status?'}
+        - {box: Persons.Shop_Code, label: 'Shop/Code'}
+        - {box: Persons.Role, label: 'Role'}
+        - {box: Persons.Time_person_began_work, label: 'Time person began work'}
+        - {box: Persons.Role_Other__Describe, label: 'Role Other, Describe'}
+        - {box: Persons.Person_Location, label: 'Person Location'}
+        - {box: Persons.Years_of_experience_performing_task_at_the_time_of_the_event, label: 'Years of experience performing task at the time of the event'}
+        - {box: Persons.Select_the_person_s_current_belt_level, label: 'Select the person''s current belt level.'}
+        - {box: Persons.What_type_of_Martial_Arts_Drill_was_involved, label: 'What type of Martial Arts Drill was involved?'}
+        - {box: Persons.What_type_of_Martial_Arts_Training_was_involved, label: 'What type of Martial Arts Training was involved?'}
+        - {box: Persons.Martial_Arts_Instructor_Trainer_Certification_Date, label: 'Martial Arts Instructor Trainer Certification Date.'}
+        - {box: Persons.Was_a_certified_Martial_Arts_Instructor_Trainer_Supervising_the_training_at_the_time, label: 'Was a certified Martial Arts Instructor Trainer Supervising the training at the time?'}
+        - {box: Persons.Name_of_Martial_Arts_Instructor_Trainer_Instructor_Supervising_Training, label: 'Name of Martial Arts Instructor Trainer Instructor Supervising Training'}
+        - {box: Persons.Did_the_employee_work_any_overtime_in_the_last_7_days, label: 'Did the employee work any overtime in the last 7 days?'}
+        - {box: Persons.Interviewed_Contact_Info, label: 'Interviewed Contact Info'}
+        - {box: Persons.Was_this_person_TDY_PCS_Deployed_at_the_time_of_the_event, label: 'Was this person TDY/PCS/Deployed at the time of the event?'}
+        - {box: Persons.At_the_time_of_the_Event__the_number_of_days_this_person_had_been_TDY_PCS_Deployed, label: 'At the time of the Event, the number of days this person had been TDY/PCS/Deployed'}
+        - {box: Persons.Number_of_days_this_person_had_been_TDY_PCS_Deployed_to_an_Operation_Contingency_during_the_last_365_days, label: 'Number of days this person had been TDY/PCS/Deployed to an Operation Contingency during the last 365 days'}
+        - {box: Persons.Was_any_portion_of_the_time_above_spent_in_a_combat_zone, label: 'Was any portion of the time above spent in a combat zone?'}
+        - {box: Persons.Number_of_elapsed_days_since_return_from_deployment_to_an_Operational_Contingency, label: 'Number of elapsed days since return from deployment to an Operational Contingency'}
+        - {box: Persons.Which_Operational_Contingency_did_this_person____cut_off_in_the_photo, label: 'Which Operational Contingency did this person … (cut off in the photo)'}
+        - {box: Persons.Injured_Body_Part, label: 'Injured Body Part'}
+        - {box: Persons.Side_of_Body, label: 'Side of Body'}
+        - {box: Persons.Injury_Type, label: 'Injury Type'}
+        - {box: Persons.Injury_Mechanism, label: 'Injury Mechanism'}
+        - {box: Persons.Tox_Substance, label: 'Tox Substance'}
+        - {box: Persons.Substance_Tier_2_Other_Describe, label: 'Substance Tier 2 Other Describe'}
+        - {box: Persons.Toxicology_Lab_Level, label: 'Toxicology Lab Level'}
+        - {box: Persons.Safety_Equipment, label: 'Safety Equipment'}
+        - {box: Persons.Was_safety_equipment_required, label: 'Was safety equipment required?'}
+        - {box: Persons.Was_safety_equipment_available, label: 'Was safety equipment available?'}
+        - {box: Persons.Was_safety_equipment_used, label: 'Was safety equipment used?'}
+        - {box: Persons.Was_person_trained_in_safety_equipment, label: 'Was person trained in safety equipment?'}
+        - {box: Persons.Did_the_safety_equipment_have_a_problem, label: 'Did the safety equipment have a problem?'}
+        - {box: Persons.Persons_Safety_Equipment_Problem, label: 'Persons Safety Equipment Problem'}
+        - {box: Persons.Was_lack_of_use_of_this_PPE_a_factor_in_the_event, label: 'Was lack of use of this PPE a factor in the event?'}
+        - {box: Persons.Was_failure_of_this_PPE_a_factor_in_the_event, label: 'Was failure of this PPE a factor in the event?'}
+        - {box: Persons.Assign_Person_to_Objects, label: 'Assign Person to Objects'}
+        - {box: Persons.Civilian_Job_Series, label: 'Civilian Job Series'}
+    - title: 'Human Factors'
+      columns:
+        - {box: Human_Factors.DOD_Event_Level_HFACs_Tier_2_and_or_Ratings, label: 'DOD Event Level HFACs Tier 2 and/or Ratings'}
+        - {box: Human_Factors.DOD_Person_Level_HFACs_Tier_1_and_or_Ratings, label: 'DOD Person Level HFACs Tier 1 and/or Ratings'}
+        - {box: Human_Factors.DOD_Person_Level_HFACs_Tier_2_and_or_Ratings, label: 'DOD Person Level HFACs Tier 2 and/or Ratings'}
+        - {box: Human_Factors.DOD_Event_Level_HFACs_Tier_1_and_or_Ratings, label: 'DOD Event Level HFACs Tier 1 and/or Ratings'}
+        - {box: Human_Factors.HFACS_Nanocode, label: 'HFACS Nanocode'}
+        - {box: Human_Factors.MFACS_apply__Y_N, label: 'MFACS apply? Y/N'}
+        - {box: Human_Factors.MFAC_rating, label: 'MFAC rating'}
+        - {box: Human_Factors.MFAC_cause_factor, label: 'MFAC cause factor'}
+    - title: 'Cost'
+      columns:
+        - {box: Cost.Event_Non_DOD_Property_Cost, label: 'Event Non-DOD Property Cost'}
+        - {box: Cost.Person_injury_cost, label: 'Person injury cost'}
+        - {box: Cost.Environmental_cost, label: 'Environmental cost'}
+    - title: 'Narrative'
+      columns:
+        - {box: Narrative.Preliminary_and_Status_Message_Narrative, label: 'Preliminary and Status Message Narrative'}
+        - {box: Narrative.Final_Message_Narrative, label: 'Final Message Narrative'}
+        - {box: Narrative.Sequence_of_Event, label: 'Sequence of Event'}
+        - {box: Narrative.General_Background_Information, label: 'General Background Information'}
+        - {box: Narrative.Factors, label: 'Factors'}
+        - {box: Narrative.Documents_Reviewed, label: 'Documents Reviewed'}
+        - {box: Narrative.Investigation_Conclusions, label: 'Investigation Conclusions'}
+        - {box: Narrative.Glossary_of_Terms___Acronyms, label: 'Glossary of Terms & Acronyms'}
+    - title: 'Findings/Recs'
+      columns:
+        - {box: Findings_Recs.Finding_Narrative, label: 'Finding Narrative'}
+        - {box: Findings_Recs.Identified_Hazard_Deficiency, label: 'Identified Hazard/Deficiency'}
+        - {box: Findings_Recs.Recommendation_Narrative, label: 'Recommendation Narrative'}
+        - {box: Findings_Recs.Tracking_Information__AfForm_847__AFTO_Form_22__etc, label: 'Tracking Information (AfForm 847, AFTO Form 22, etc)'}
+        - {box: Findings_Recs.Recommendation_OPR_Organization, label: 'Recommendation OPR Organization'}
+        - {box: Findings_Recs.Responsible_Discipline_Category, label: 'Responsible Discipline/Category'}
+        - {box: Findings_Recs.This_Recommendation_is_associated_with_which_findings, label: 'This Recommendation is associated with which findings?'}
+        - {box: Findings_Recs.OCR_Organization, label: 'OCR Organization'}
+    - title: 'OFS/ORS'
+      columns:
+        - {box: OFS_ORS.Finding_Narrative, label: 'Finding Narrative'}
+        - {box: OFS_ORS.Identified_Hazard_Deficiency, label: 'Identified Hazard/Deficiency'}
+        - {box: OFS_ORS.Recommendation_Narrative, label: 'Recommendation Narrative'}
+        - {box: OFS_ORS.Tracking_Information__AfForm_847__AFTO_Form_22__etc, label: 'Tracking Information (AfForm 847, AFTO Form 22, etc)'}
+        - {box: OFS_ORS.Recommendation_OPR_Organization, label: 'Recommendation OPR Organization'}
+        - {box: OFS_ORS.Responsible_Discipline, label: 'Responsible Discipline'}
+        - {box: OFS_ORS.OCR_Organization, label: 'OCR Organization'}
+        - {box: OFS_ORS.This_ORS_is_associated_with_which_findings, label: 'This ORS is associated with which findings?'}
+    - title: 'Exhibits'
+      columns:
+        - {box: Exhibits.Exhibit__Appointment_Orders, label: 'Exhibit: Appointment Orders'}
+        - {box: Exhibits.Exhibit__Causal_Notifications, label: 'Exhibit: Causal Notifications'}
+        - {box: Exhibits.Exhibit__Causal_Responses, label: 'Exhibit: Causal Responses'}
+        - {box: Exhibits.Exhibit__Damage_Summary, label: 'Exhibit: Damage Summary'}
+        - {box: Exhibits.Exhibit__Deficiency_Reports, label: 'Exhibit: Deficiency Reports'}
+        - {box: Exhibits.Exhibit__Diagrams, label: 'Exhibit: Diagrams'}
+        - {box: Exhibits.Exhibit__Evidence_Transfer_Documents, label: 'Exhibit: Evidence Transfer Documents'}
+        - {box: Exhibits.Exhibit__Guidance__Official, label: 'Exhibit: Guidance, Official'}
+        - {box: Exhibits.Exhibit__Guidance__Unofficial, label: 'Exhibit: Guidance, Unofficial'}
+        - {box: Exhibits.Exhibit__Investigation_Comments_and_Feedback, label: 'Exhibit: Investigation Comments and Feedback'}
+        - {box: Exhibits.Exhibit__Investigation_Outbriefing, label: 'Exhibit: Investigation Outbriefing'}
+        - {box: Exhibits.Exhibit__Investigation_Products, label: 'Exhibit: Investigation Products'}
+        - {box: Exhibits.Exhibit__Law_Enforcement_Reports, label: 'Exhibit: Law Enforcement Reports'}
+        - {box: Exhibits.Exhibit__Maintenance_and_Equipment_Records, label: 'Exhibit: Maintenance and Equipment Records'}
+        - {box: Exhibits.Exhibit__Maps_and_Charts, label: 'Exhibit: Maps and Charts'}
+        - {box: Exhibits.Exhibit__Medical_Analysis, label: 'Exhibit: Medical Analysis'}
+        - {box: Exhibits.Exhibit__Medical_Information, label: 'Exhibit: Medical Information'}
+        - {box: Exhibits.Exhibit__Mission_Records, label: 'Exhibit: Mission Records'}
+        - {box: Exhibits.Exhibit__Non_Disclosure_Agreements, label: 'Exhibit: Non-Disclosure Agreements'}
+        - {box: Exhibits.Exhibit__Parametric_Data, label: 'Exhibit: Parametric Data'}
+        - {box: Exhibits.Exhibit__Photographs, label: 'Exhibit: Photographs'}
+        - {box: Exhibits.Exhibit__Radar_Data_and_Plots, label: 'Exhibit: Radar Data and Plots'}
+        - {box: Exhibits.Exhibit__SIB_contact_Information, label: 'Exhibit: SIB contact Information'}
+        - {box: Exhibits.Exhibit__Technical_and_Engineering_Reports, label: 'Exhibit: Technical and Engineering Reports'}
+        - {box: Exhibits.Exhibit__Testimony_and_Statements, label: 'Exhibit: Testimony and Statements'}
+        - {box: Exhibits.Exhibit__Training_Records, label: 'Exhibit: Training Records'}
+        - {box: Exhibits.Exhibit__Transcripts__Not_Interviews, label: 'Exhibit: Transcripts (Not Interviews)'}
+        - {box: Exhibits.Exhibit__Videos, label: 'Exhibit: Videos'}
+        - {box: Exhibits.Exhibit__Weather_Records, label: 'Exhibit: Weather Records'}
+        - {box: Exhibits.Exhibit__Witness_List, label: 'Exhibit: Witness List'}
+        - {box: Exhibits.Exhibit__Other, label: 'Exhibit: Other'}
+        - {box: Exhibits.Exhibit__Minority_Reports, label: 'Exhibit: Minority Reports'}

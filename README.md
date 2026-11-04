@@ -3,7 +3,8 @@
 You tell what happened — out loud or from a voice memo — and the app does the rest:
 
 1. **Records** your story and turns it into text.
-2. **Fills the safety forms** from it: **OSHA 301** and the **South Dakota Employer's First Report of Injury**.
+2. **Fills the safety forms** from it: **OSHA 301** and the **South Dakota Employer's First Report of Injury** —
+   or, for a military story (a ship, unit or base), the **Mishap Information Worksheet** (Navy / DoD, AFSAS-style).
 3. **Saves** the filled PDFs.
 4. **Adds the report to one Excel file** (`data_tracker/reports.xlsx`) — one row per report, one column per box.
 
@@ -128,6 +129,7 @@ latest run — kept apart from your real reports). Your recordings stay on your 
 |---|---|
 | **Use a voice memo, video, or text file** | `uv run make-report --input ~/Downloads/incident.m4a` |
 | What to say before you record | `uv run make-report --brief` |
+| The dashboard: reports filed, the forms, live-test accuracy, and buttons that run each step (this Mac only; Ctrl-C stops it). `--write` only writes `data_tracker/dashboard.html` | `uv run dashboard` |
 | **Bring in old filled PDFs** (once) | `uv run add-old-pdfs ~/old_reports` |
 
 **Start each recording with who is making the report**, e.g. *"This report is by Sam Park, Kitchen Manager,
@@ -151,6 +153,8 @@ skipped. Run `uv run add-old-pdfs` with nothing after it to just rebuild the Exc
 
 Say it in your own words — this order covers every box on OSHA 301 and the SD form.
 
+0. **Which form** (optional) — say **"OSHA form"**, **"South Dakota form"** or **"Mishap"** and only that form is
+   filled (and only its questions are asked). Say none of them and every form that fits the story is filled.
 1. **Who you are** — "This report is by **[your name]**, **[job title]**, phone **[number]**."
    *Only if the report is for a different company than in `data/profile.yaml`:* "We are **[company name]**,
    **[street, city, state, ZIP]**, phone **[number]**." Say the name, or the profile's company is used.
@@ -166,6 +170,9 @@ Say it in your own words — this order covers every box on OSHA 301 and the SD 
 7. **Safety, witness, reporting** — safety equipment provided? used? The witness's name. Who it was reported to,
    and the date.
 8. **Only if it applies** — the date they returned to work; the date of death.
+9. **Military mishap only** (ship, unit, command or base) — the ship's name, where it was (at sea / port, nearest
+   base, country), the exact space on the ship, the kind of event, the sequence of events with times, the weather,
+   sea state, visibility, wind, and whether there were eyewitnesses. This fills the Mishap Information Worksheet.
 
 Tips: say dates in full (not "yesterday" or "the same day" — the app won't guess a date); say every yes/no out
 loud; anything you don't say is left blank.

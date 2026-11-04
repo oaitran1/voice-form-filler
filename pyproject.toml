@@ -20,6 +20,7 @@ record = "vff.cli.record:main"                # talk → forms filled, saved, in
 make-report = "vff.cli.make_report:main"      # a voice memo / video / text file → the same
 add-old-pdfs = "vff.cli.add_old_pdfs:main"    # old filled PDFs → records/old_pdfs + the workbook
 live-test = "vff.cli.live_test:main"          # read a script aloud → forms filled → every box checked
+dashboard = "vff.cli.dashboard:main"          # one page: reports filed, the forms, live-test accuracy (data_tracker/)
 
 [build-system]
 requires = ["hatchling"]

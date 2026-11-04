@@ -13,7 +13,8 @@ import yaml
 # text: a written section ("What happened?"), 1–3 sentences from the recording
 # multi: any number of `options` ("check all that apply"), written "Rainy; Fog"
 KINDS = frozenset({"short", "date", "time", "choice", "multi", "text"})
-GROUPS = frozenset({"story", "company"})  # story: said in the recording; company: saved profile, unless the company name is said
+GROUPS = frozenset({"story", "company", "mishap"})  # story: said in the recording; company: saved profile, unless the
+# company name is said; mishap: military (Navy / DoD) facts, asked as their own question, blank for a civilian workplace
 MULTI_SEPARATOR = ";"
 
 
