@@ -21,9 +21,16 @@ Works on Mac, Windows and Linux. Needs about 16 GB of memory and 12 GB of free d
 Silicon Mac (M1 or newer) or a computer with an NVIDIA graphics card; on other computers a report can take
 several minutes. Steps 1–4 are done once; steps 5–6 are every report.
 
-### Step 1 — Put the folder on your computer and open a terminal in it
+### Step 1 — Get the folder and open a terminal in it
 
-Copy (or unzip) the `voice_form_filler` folder anywhere, e.g. your Desktop. Then open a terminal **in that folder**:
+Either way gives you one folder (named `voice-form-filler` or `voice-form-filler-main`):
+
+- **Download:** on the GitHub page click the green **Code** button → **Download ZIP**, then unzip it.
+- **Or with git:** `git clone https://github.com/oaitran1/voice-form-filler.git`
+
+Put it somewhere **not** synced by OneDrive, iCloud Drive or Dropbox (e.g. `C:\Users\you\` or your home folder):
+the app installs about 2 GB of files inside it, and syncing those is slow and can break the install.
+Then open a terminal **in that folder**:
 
 | Computer | How |
 |---|---|
@@ -41,9 +48,10 @@ Every command below is typed in this terminal.
 | **Windows** | `powershell -ExecutionPolicy Bypass -File setup.ps1` |
 
 It installs the tools, downloads the two AI models (about 10 GB — the only time it uses the internet), installs
-the app, then checks itself on 3 test stories. The first time takes a while (mostly the download). It may ask for your
-computer password (to install tools). **Done when you see `✓ Set up.`** If it stops, fix what the message says and
-run it again — anything already done is skipped. (Windows needs `winget`, built into Windows 10/11.)
+the app, then checks itself on one test story. The first time takes a while (mostly the download). It may ask for
+your computer password (to install tools). **Done when you see `✓ Set up.`** If it stops, fix what the message says
+and run it again — anything already done is skipped. (On Windows the tools come from `winget` when it works, otherwise
+from their own installers; if a tool still won't install, the message gives the download page.)
 
 ### Step 3 — Type your company's details (once)
 

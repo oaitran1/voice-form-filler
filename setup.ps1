@@ -22,15 +22,46 @@ function OllamaUp {
     try { Invoke-RestMethod $OllamaUrl -TimeoutSec 2 | Out-Null; $true } catch { $false }
 }
 
-if (-not (Have winget)) {
-    throw "winget is missing. Install 'App Installer' from the Microsoft Store, then run setup.ps1 again."
+function InstallWithWinget($id) {
+    # $true if winget installed it. Only winget's own source: the Microsoft Store source often fails or asks questions.
+    if (-not (Have winget)) { Write-Host "  (winget is not available)"; return $false }
+    & winget install --id $id -e --source winget --accept-source-agreements --accept-package-agreements
+    return ($LASTEXITCODE -eq 0)
 }
-foreach ($tool in @(@{ Name = "uv"; Id = "astral-sh.uv" }, @{ Name = "ollama"; Id = "Ollama.Ollama" })) {
-    if (-not (Have $tool.Name)) {
-        Step "Installing $($tool.Name)"
-        Run winget install --id $tool.Id -e --accept-source-agreements --accept-package-agreements
-        RefreshPath
+
+if ($PSScriptRoot -match "OneDrive|iCloud|Dropbox") {
+    Write-Host "`nNOTE: this folder is inside a synced folder (OneDrive). The app installs about 2 GB of files here;"
+    Write-Host "      syncing them is slow and can break the install. If it fails, move the folder to C:\Users\<you>\ and run again."
+}
+
+if (-not (Have uv)) {
+    Step "Installing uv (the Python tool)"
+    if (-not (InstallWithWinget "astral-sh.uv")) {
+        Write-Host "  winget could not install uv - using uv's own installer instead."
+        Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression
     }
+    RefreshPath
+    if (-not (Have uv)) { throw "uv did not install. Install it from https://docs.astral.sh/uv/getting-started/installation/ then run setup.ps1 again." }
+}
+
+if (-not (Have ollama)) {
+    Step "Installing Ollama (the local AI)"
+    if (-not (InstallWithWinget "Ollama.Ollama")) {
+        Write-Host "  winget could not install Ollama - downloading its installer instead (about 1 GB)."
+        $installer = Join-Path $env:TEMP "OllamaSetup.exe"
+        Invoke-WebRequest https://ollama.com/download/OllamaSetup.exe -OutFile $installer
+        Start-Process $installer -ArgumentList "/VERYSILENT" -Wait
+    }
+    RefreshPath
+    if (-not (Have ollama)) { throw "Ollama did not install. Install it from https://ollama.com/download then run setup.ps1 again." }
+}
+
+if (-not (Have ffmpeg)) {
+    Step "Installing ffmpeg (only needed to read voice-memo and video files)"
+    if (-not (InstallWithWinget "Gyan.FFmpeg")) {
+        Write-Host "  Could not install ffmpeg. Live recording works without it; to use voice-memo files later, install it from https://ffmpeg.org/download.html"
+    }
+    RefreshPath
 }
 
 Step "Starting the local AI"
@@ -58,11 +89,12 @@ if (-not (Test-Path "data\profile.yaml")) {
     $madeProfile = $true
 }
 
-Step "Checking it works (the 3 test stories, typed - no microphone; a few minutes)"
-$null | uv run live-test --typed --no-open
+Step "Checking it works (one test story, typed - no microphone; about 3 minutes)"
+$null | uv run live-test --typed --script 3 --no-open
 if ($LASTEXITCODE) { throw "Stopped: the check failed." }
 
 Write-Host "`nSet up."
+Write-Host "  Full check of every test story, any time: uv run live-test --typed"
 if ($madeProfile) {
     Write-Host "  Next: open data\profile.yaml and type your company's details (it holds a sample company now)."
 }

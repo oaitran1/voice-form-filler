@@ -74,10 +74,11 @@ if [ ! -f data/profile.yaml ]; then
   made_profile=yes
 fi
 
-step "Checking it works (the 3 test stories, typed — no microphone; a few minutes)"
-uv run live-test --typed --no-open </dev/null
+step "Checking it works (one test story, typed — no microphone; about 3 minutes)"
+uv run live-test --typed --script 3 --no-open </dev/null
 
 printf '\n✓ Set up.\n'
+echo "  Full check of every test story, any time: uv run live-test --typed"
 if [ "$made_profile" = yes ]; then
   echo "  Next: open data/profile.yaml and type your company's details (it holds a sample company now)."
 fi
