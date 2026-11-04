@@ -13,8 +13,6 @@ Everything runs on your computer; nothing is sent to the internet.
 
 ![How it works: talk, listen, understand, fill, keep](docs/architecture.png)
 
-The detailed version, with the files and models behind each step, is [docs/architecture_detailed.png](docs/architecture_detailed.png).
-
 ## Step by step
 
 Works on Mac, Windows and Linux. Needs about 16 GB of memory and 12 GB of free disk space. Fastest on an Apple
