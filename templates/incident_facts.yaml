@@ -139,11 +139,11 @@ fields:
   - {key: policy_number, label: Insurance policy number, group: company}
 
   # --- military mishap (Navy / DoD worksheet) — asked as its own question; all blank for a civilian workplace ---
-  - {key: mishap_event_type, label: "Kind of military mishap event (a fire, a man overboard, a collision, a ground mishap …)", group: mishap,
-     hint: "The story's own words for the event, e.g. 'fire' or 'electrical fire', plus its class (Class A, B, C or D) only when the story says one; never add words the story doesn't use; only for a ship, unit, command or base; blank for a civilian workplace"}
-  - {key: mishap_type, label: "Mishap type — the category of the mishap, picked from the story", kind: choice, group: mishap,
-     options: [Afloat, Ashore, Aviation, Motor vehicle, Diving, Weapons, Off-duty],
-     hint: "Afloat = aboard a ship or boat; Ashore = on a base or shore facility; Aviation = an aircraft; Motor vehicle; Diving; Weapons = weapons or explosives; Off-duty = not at work. Pick the one that fits the story; blank only if none does"}
+  - {key: mishap_event_type, label: "Event type — what happened (a fire, a man overboard, a collision, a fall, a ground mishap …)", group: mishap,
+     hint: "The story's own words for what happened, e.g. 'fire' or 'electrical fire'; never a class letter, never a category word like afloat, never words the story doesn't use; only for a ship, unit, command or base; blank for a civilian workplace"}
+  - {key: mishap_type, label: "Mishap type — the severity class (Class A, B, C, D or E)", kind: choice, group: mishap,
+     options: [Class A, Class B, Class C, Class D, Class E],
+     hint: "The class the story states ('a Class C mishap'). When no class is said, pick it from the outcome the story gives: Class A = a death, a permanent total disability, or damage of $2,500,000 or more; Class B = a permanent partial disability, three or more people admitted to hospital, or damage of $600,000 or more; Class C = an injury with a lost workday, or damage of $60,000 or more; Class D = a recordable injury (more than first aid), or damage of $25,000 or more; Class E = the story says there was no injury and no damage, or a near miss. Blank when the story gives no class and the cost of the damage isn't said"}
   - {key: mishap_one_liner, label: One sentence saying what the event was, kind: text, group: mishap}
   - {key: ship_name, label: "Ship name, e.g. USS Example", group: mishap}
   - {key: event_port, label: Port the ship was in (only if in port), group: mishap}

@@ -26,8 +26,8 @@ script: >
   sailor was seen in medical. The witnesses were Petty Officer Lee and Fireman Apprentice Taylor Morgan.
 facts:
   # the six preliminary boxes
-  mishap_event_type: Class C afloat electrical fire
-  mishap_type: afloat
+  mishap_event_type: electrical fire
+  mishap_type: Class C
   incident_time: "2135"
   reported_date: 11/04/2026
   isb_investigator: Lieutenant Avery Nguyen

@@ -66,7 +66,7 @@ script: >
 facts:
   # the preliminary boxes that are said — the SIB investigator is not named, so that box is flagged on purpose
   mishap_event_type: fire
-  mishap_type: Afloat
+  mishap_type: ""   # no class said and no cost of the damage: the box must stay blank (and be flagged)
   incident_time: "1842"
   reported_date: 10/21/2026
   isb_investigator: Demo Investigator Four
