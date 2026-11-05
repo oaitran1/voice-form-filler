@@ -210,32 +210,3 @@ def print_pdf(blank: Path, values: dict[str, str], out: Path) -> Path:
     writer.remove_annotations(subtypes="/Widget")
     del writer.root_object[NameObject("/AcroForm")]
     return _save_private(writer, out)
-
-
-def _fix_button_values(writer: PdfWriter) -> None:
-    """Tidy what pypdf writes for boxes, so strict viewers (macOS Preview) show them ticked:
-    the answer must be a PDF name (/PM), not the text "/PM"; and only the group holds it, not each button."""
-    for page in writer.pages:
-        for annot in page.get("/Annots", []) or []:
-            widget = annot.get_object()
-            if mark_style(widget) is None:
-                continue
-            if "/Parent" in widget and "/T" not in widget:
-                widget.pop("/V", None)
-                holder = widget["/Parent"].get_object()
-            else:
-                holder = widget
-            value = holder.get("/V")
-            if isinstance(value, str) and value.startswith("/") and not isinstance(value, NameObject):
-                holder[NameObject("/V")] = NameObject(value)
-
-
-def fill_pdf(blank: Path, values: dict[str, str], out: Path) -> Path:
-    """Save a filled copy of `blank` to `out` (owner-only; refuses to overwrite)."""
-    writer = PdfWriter(clone_from=str(blank))
-    values = _wrap(values, _multiline_widths(writer))
-    for page in writer.pages:
-        writer.update_page_form_field_values(page, values, auto_regenerate=False)
-    _fix_button_values(writer)
-    writer.set_need_appearances_writer(True)  # viewers redraw the boxes with the new text
-    return _save_private(writer, out)

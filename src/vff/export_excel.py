@@ -1,5 +1,5 @@
 """Every saved report → one Excel workbook (data_tracker/reports.xlsx): a sheet per form, a row per report, a column for
-every box on the page. Spoken reports (records/<date>_incident/*_filled.pdf) and old PDFs (copied into
+every box on the page. Spoken reports (records/<date>_incident/*_boxes.json) and old PDFs (copied into
 records/old_pdfs/) go in the same workbook; the Source column says which is which.
 
 Reads the answer stored in each box — no AI, nothing guessed, nothing leaves the Mac. Which box is which question
@@ -9,6 +9,7 @@ A PDF that can't be read, or isn't one of those forms, goes on the "Not exported
 """
 
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -32,6 +33,7 @@ OLD_PDFS = "old_pdfs"  # old filled PDFs, copied in once by `uv run add-old-pdfs
 SPOKEN, OLD = "spoken report", "old PDF"
 MIN_MATCH = 0.5  # share of a form's boxes a PDF must have to count as that form
 OFF = frozenset({"", "/Off", "Off"})
+BOXES_SUFFIX = "_boxes.json"  # a spoken report's answers, box by box, saved beside its print PDF
 CHECK_COLUMN = "Check by hand"
 PROBLEM_SHEET = "Not exported"
 MAX_WIDTH = 50
@@ -102,7 +104,7 @@ def load_layout(path: Path) -> Layout:
             raise ValueError(f"{path.name}: box {column.box!r} is listed twice")
         seen.add(column.box)
     copies = re.compile(data["copies"]) if data.get("copies") else None
-    blank = read_pdf(path.parent / raw["pdf"]) if raw.get("pdf") else {}  # what boxes hold before anyone types
+    blank = read_answers(path.parent / raw["pdf"]) if raw.get("pdf") else {}  # what boxes hold before anyone types
     return Layout(str(raw["id"]), str(data["sheet"])[:31], sections, copies, str(data.get("copy_prefix", "")),
                   blank)
 
@@ -121,9 +123,15 @@ def _text(value) -> str:
     return "" if value is None else str(value)
 
 
-def read_pdf(path: Path) -> dict[str, str]:
-    """Every box's stored answer, by the box's full name. Raises ValueError when the file can't be read."""
+def read_answers(path: Path) -> dict[str, str]:
+    """Every box's stored answer, by the box's full name — from a PDF's boxes, or from the app's own *_boxes.json.
+    Raises ValueError when the file can't be read."""
     try:
+        if path.suffix == ".json":
+            answers = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(answers, dict):
+                raise ValueError("not a box list")
+            return {str(name): _text(value) for name, value in answers.items()}
         fields = open_pdf(path).get_fields() or {}
     except (PyPdfError, OSError, ValueError, KeyError) as err:
         raise ValueError(f"can't open it ({err.__class__.__name__}: {err})") from err
@@ -174,11 +182,13 @@ def reports_from(file: str, values: dict[str, str], layout: Layout, source: str 
 
 # ---------- which PDFs go in ----------
 
-def saved_pdfs(records_dir: Path = RECORDS_DIR) -> list[tuple[Path, str]]:
-    """(PDF, source) for every saved report: the editable copy of each spoken report, then every old PDF.
-    Print copies have no boxes left, so only the *_filled.pdf of a spoken report is read."""
+def saved_reports(records_dir: Path = RECORDS_DIR) -> list[tuple[Path, str]]:
+    """(file, source) for every saved report: each spoken report's *_boxes.json (or, for a report saved before
+    those existed, its editable *_filled.pdf), then every old PDF. Print copies have no boxes left to read."""
     records_dir = Path(records_dir)
-    spoken = sorted(p for p in records_dir.glob("*/*_filled.pdf") if p.parent.name != OLD_PDFS)
+    spoken = sorted(p for p in records_dir.glob(f"*/*{BOXES_SUFFIX}") if p.parent.name != OLD_PDFS)
+    spoken += sorted(p for p in records_dir.glob("*/*_filled.pdf")
+                     if p.parent.name != OLD_PDFS and not p.with_name(p.name.replace("_filled.pdf", BOXES_SUFFIX)).exists())
     old = sorted(p for p in (records_dir / OLD_PDFS).glob("*") if p.suffix.lower() == ".pdf")
     return [(p, SPOKEN) for p in spoken] + [(p, OLD) for p in old]
 
@@ -293,7 +303,7 @@ def _sort(pdfs: list[tuple[Path, str]], records_dir: Path, layouts: list[Layout]
     for pdf, source in pdfs:
         shown = pdf.relative_to(records_dir).as_posix()
         try:
-            values = read_pdf(pdf)
+            values = read_answers(pdf)
         except ValueError as err:
             problems.append((source, shown, f"{err} — check by hand"))
             continue
@@ -315,7 +325,7 @@ def rebuild_workbook(records_dir: Path = RECORDS_DIR, layouts: list[Layout] | No
     old. Returns (path, rows per sheet)."""
     records_dir = private_folder(Path(records_dir))
     layouts = load_layouts() if layouts is None else layouts
-    rows, problems = _sort(saved_pdfs(records_dir), records_dir, layouts)
+    rows, problems = _sort(saved_reports(records_dir), records_dir, layouts)
     workbook = Workbook()
     workbook.remove(workbook.active)
     for layout in layouts:

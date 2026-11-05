@@ -8,7 +8,7 @@
 Scripts and their right answers: live_test/scripts/*.yaml. The Excel file goes to data_tracker/live_test.xlsx
 (the latest run). Each run also makes a new folder, then opens it:
     live_test/results/<date_time>/
-        <script>/osha_301_filled.pdf, sd_froi_filled.pdf, transcript.txt …   ← the filled forms
+        <script>/osha_301_print.pdf, osha_301_boxes.json, transcript.txt …  ← the filled forms + their answers
         RESULTS.md                                                            ← every box: ✓ right, ✗ wrong, 👁 read it
 The company details come from templates/examples/company_profile.yaml, so the right answers are always known.
 """

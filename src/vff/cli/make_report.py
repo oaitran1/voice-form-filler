@@ -117,7 +117,7 @@ def _print_form_results(results, verbose: bool = True) -> list[dict]:
                 print(f"  ⚑ {missing_line(filled.missing)}")
         summary.append({"form": result.form.id, "filled": len(filled.values), "notes": filled.notes,
                         "by_hand": filled.by_hand, "missing": filled.missing,
-                        "editable_pdf": result.filled_pdf.name, "print_pdf": result.print_pdf.name})
+                        "boxes": result.boxes_file.name, "print_pdf": result.print_pdf.name})
     return summary
 
 
