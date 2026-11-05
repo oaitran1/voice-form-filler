@@ -1,0 +1,80 @@
+title: Diesel generator crankcase fire — mishap worksheet, no injuries, two persons, ISB named but no SIB (a preliminary box left blank on purpose)
+hints: FTV Meridian, Demo Investigator Three, Demo Investigator Four, Demo Sailor Charlie, Demo Sailor Delta, Surface Training Group, SSDG-2, Main Machinery Room 1, aqueous film-forming foam
+script: >
+  My name is Demo Investigator Three, and my role in this mishap investigation is Engineering Safety Representative.
+  The designated Event ISB Investigator is Demo Investigator Four.
+  The fire mishap was reported to the Safety Office on October 21, 2026, at approximately 1855.
+  The convening authority responsible for this investigation is Surface Training Group.
+  The accounting organization associated with this mishap is FTV Meridian.
+  On October 21, 2026, at approximately 1842, a fire occurred aboard FTV Meridian in Main Machinery Room 1 near Ship
+  Service Diesel Generator 2. The fire resulted in damage to generator components, no reported injuries, and removal
+  of SSDG-2 from service.
+  The location of this mishap does not need to be temporarily withheld due to operational security concerns.
+  This event was not the result of friendly fire.
+  The individual's name is Demo Sailor Charlie. Their grade or rank is Engineman Second Class. Their employment
+  status is active-duty military, and their assigned organization is FTV Meridian Engineering Department. Their DoD
+  ID will be entered separately into the authorized reporting system. This individual has not yet been determined
+  to be a factor in the mishap. Their involvement consisted of serving as the machinery-room watchstander, observing
+  the generator trip and smoke, and reporting the casualty. This individual was not injured during the mishap. Their
+  currently reported injury severity is none. At the time of the mishap, this individual was operating equipment
+  that received damage. The equipment involved was Ship Service Diesel Generator 2, and the individual's role was
+  assigned watchstander. This individual has been interviewed regarding the mishap. Their interview status is
+  completed.
+  The individual's name is Demo Sailor Delta. Their grade or rank is Damage Control Second Class. Their employment
+  status is active-duty military, and their assigned organization is FTV Meridian Damage Control Organization.
+  Their DoD ID will be entered separately into the authorized reporting system. This individual was not determined
+  to be a factor in the mishap. Their involvement consisted of leading the initial emergency response team and
+  supervising fire containment. This individual was not injured during the mishap. Their currently reported injury
+  severity is none. At the time of the mishap, this individual was not operating equipment that caused or received
+  damage. The equipment involved was Ship Service Diesel Generator 2, and the individual's role was emergency
+  response team leader. This individual has been interviewed regarding the mishap. Their interview status is
+  completed.
+  Prior to the fire, the vessel was conducting an underway engineering drill with normal generator load sharing.
+  Personnel were conducting routine machinery-space watchstanding in Main Machinery Room 1.
+  The fire was first discovered on October 21, 2026, at approximately 1842, in Main Machinery Room 1 near Ship
+  Service Diesel Generator 2. The fire was discovered by the machinery-room watchstander, who observed the generator
+  trip and white-gray smoke from the lower flywheel inspection area.
+  Upon discovery of the fire, personnel initiated internal alarms, notified central control and the Safety Office,
+  evacuated nonessential personnel, and mustered the emergency response team. The initial response consisted of
+  securing fuel and electrical sources to SSDG-2, establishing boundaries, and cooling the exterior of the generator
+  enclosure.
+  The fire was contained by the emergency response team using equipment isolation, boundary cooling, and a portable
+  aqueous film-forming foam extinguisher applied to the localized oil fire. The fire was reported extinguished at
+  approximately 1901.
+  As a result of the fire, zero personnel sustained reported injuries. The known injuries consisted of none. The
+  fire caused damage to the lower crankcase access area, a connecting-rod assembly, adjacent internal generator
+  components, and localized wiring insulation. The full extent of the damage is being assessed.
+  The fire did affect the vessel's operational capabilities. The known operational impact included removal of
+  SSDG-2 from service, deferral of the engineering drill and nonessential maintenance, and continued electrical
+  operations using remaining available generation capacity.
+  The cause of the fire is currently under investigation. The preliminary investigation has identified a generator
+  trip, internal mechanical damage, lubricating-oil residue near the lower crankcase access area, and heat effects
+  consistent with a localized oil fire. No final causal determination has been made.
+  As of October 21, 2026, at 2200, the vessel's current status is stable and proceeding under the training plan
+  with SSDG-2 unavailable. SSDG-2 is secured, cooled, tagged out, and under engineering control. Personnel involved
+  are uninjured and available for follow-up interviews. Investigation and recovery activities are focused on
+  mechanical inspection, oil-sample collection, evidence preservation, and electrical-load management.
+  The following information has been confirmed: SSDG-2 tripped offline at 1842; smoke was observed at the lower
+  flywheel inspection area; fuel and electrical sources were secured; a localized fire was extinguished at 1901;
+  no injuries were reported; and SSDG-2 sustained internal mechanical and heat damage.
+  The following information remains unknown or pending verification: the initiating mechanical failure, the
+  sequence leading to oil release, the condition of internal bearings and crankcase components, the extent of
+  secondary wiring damage, and the final repair timeline.
+  This report reflects the information available as of October 21, 2026, at 2200. The mishap remains under
+  investigation, and additional information will be provided as it becomes available. Any preliminary observations
+  are subject to verification and should not be considered final investigation findings.
+facts:
+  # the preliminary boxes that are said — the SIB investigator is not named, so that box is flagged on purpose
+  mishap_event_type: fire
+  mishap_type: Afloat
+  incident_time: "1842"
+  reported_date: 10/21/2026
+  isb_investigator: Demo Investigator Four
+  # mishap_one_liner and sequence_of_events are written answers — read by eye
+  # the rest of the worksheet
+  incident_types: Property damage
+  incident_date: 10/21/2026
+  during_training: "Yes"
+  eyewitnesses: "Yes"
+  ship_name: FTV Meridian
+  location_description: Main Machinery Room 1 near Ship Service Diesel Generator 2
