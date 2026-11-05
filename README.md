@@ -14,7 +14,7 @@ Everything runs on your computer; nothing is sent to the internet.
 
 ![How it works: talk, listen, understand, fill, keep](docs/architecture.png)
 
-## What it looks like
+## Demo
 
 One page in your browser, nothing else to open. Pick the form, record, and the filled form appears below:
 
