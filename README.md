@@ -189,8 +189,10 @@ Say it in your own words — this order covers every box on OSHA 301.
 9. **Military mishap only** (ship, unit, command or base) — the kind of event and the mishap type (afloat, ashore,
    aviation, motor vehicle …), the ship's name, where it was (at sea / port, nearest base, country), the exact space on the ship, the kind of event, the sequence of events with times, the weather,
    sea state, visibility, wind, and whether there were eyewitnesses. This fills the Mishap Information Worksheet.
-   A preliminary report must have six boxes — the one-liner, the kind of event, the local time, the date it was
-   reported to the safety office, and the ISB and SIB investigators — so say them; any left blank is flagged after filling.
+   A preliminary report must have seven boxes — the mishap type, the one-liner, the kind of event, the local time,
+   the date it was reported to the safety office, and the ISB and SIB investigators — so say them; any left blank
+   is flagged after filling. The mishap type is picked from the story (a ship at sea → Afloat) even when you don't
+   say the word.
 
 Tips: say dates in full (not "yesterday" or "the same day" — the app won't guess a date); say every yes/no out
 loud; anything you don't say is left blank.
