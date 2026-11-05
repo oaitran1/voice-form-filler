@@ -140,6 +140,8 @@ fields:
   # --- military mishap (Navy / DoD worksheet) — asked as its own question; all blank for a civilian workplace ---
   - {key: mishap_event_type, label: "Kind of military mishap event, e.g. Class C afloat fire, aviation ground mishap", group: mishap,
      hint: "Only for a ship, unit, command or base; blank for a civilian workplace"}
+  - {key: mishap_type, label: "Mishap type — the category only: afloat, ashore, aviation, motor vehicle, diving, weapons, off-duty", group: mishap,
+     hint: "One or two words, e.g. afloat; blank if the category is not said"}
   - {key: mishap_one_liner, label: One sentence saying what the event was, kind: text, group: mishap}
   - {key: ship_name, label: "Ship name, e.g. USS Example", group: mishap}
   - {key: event_port, label: Port the ship was in (only if in port), group: mishap}

@@ -1,4 +1,5 @@
 # Mishap Information Worksheet (Navy / DoD, AFSAS-style) — rebuilt as a fillable PDF from screen photos 2026-11-04.
+# General_Information.Mishap_Type is not on the photographed worksheet: added 2026-11-04 (the category: afloat, aviation …).
 # Box → fact map written by hand. Left blank on purpose: investigator sections (Risk Management, Human Factors, Cost,
 # Findings/Recs, OFS/ORS, Exhibits except the witness list), Persons rows a story never carries (DOD ID, grade, AFSC …).
 # No event-date box was photographed (the worksheet's first page is missing) — incident_date has nowhere to go yet.
@@ -12,6 +13,7 @@ needs_any: [ship_name, nearest_base, mishap_event_type]
 say: [Mishap, Mishap worksheet, Mishap form]
 boxes:
   - {box: General_Information.Event_Type__Secondary_Tiers, fact: mishap_event_type, required: preliminary}
+  - {box: General_Information.Mishap_Type, fact: mishap_type}
   - {box: General_Information.Local_Time, fact: [incident_time, incident_ampm], required: preliminary}
   - {box: General_Information.Date_Report_To_Safety_Office__Local, fact: reported_date, required: preliminary}
   - {box: General_Information.One_Liner, fact: mishap_one_liner, required: preliminary}
@@ -61,6 +63,7 @@ excel:
         - {box: General_Information.Event_ISB_Investigator, label: 'Event ISB Investigator'}
         - {box: General_Information.Event_SIB_Investigator, label: 'Event SIB Investigator'}
         - {box: General_Information.Event_Type__Secondary_Tiers, label: 'Event Type (Secondary Tiers)'}
+        - {box: General_Information.Mishap_Type, label: 'Mishap Type'}
         - {box: General_Information.Mishap_Non_Reportable_Reference, label: 'Mishap Non-Reportable Reference'}
         - {box: General_Information.Local_Time, label: 'Local Time'}
         - {box: General_Information.Time_of_Day, label: 'Time of Day'}

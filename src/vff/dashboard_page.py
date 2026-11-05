@@ -107,7 +107,8 @@ p { margin: 0 0 10px; }
 .btn.primary { background: var(--s1); border-color: var(--s1); color: #fff; }
 .btn.primary:hover { filter: brightness(1.08); background: var(--s1); }
 .btn .ic { font-size: 1.1rem; }
-.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; align-items: center; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+#runCard { margin-bottom: 18px; }
 .actions .hint { font-size: .85rem; color: var(--muted); }
 .progress { margin-bottom: 18px; display: none; }
 .progress.on { display: block; }
@@ -124,6 +125,14 @@ p { margin: 0 0 10px; }
 .steps li.past { color: var(--text-2); } .steps li.past::before { background: var(--good); }
 .steps li.now { color: var(--text); font-weight: 600; } .steps li.now::before { background: var(--s1); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s1) 25%, transparent); }
 .steps li + li { margin-left: 6px; }
+.picker { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.picker .q { font-weight: 600; margin-bottom: 8px; }
+.picker .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.console { margin-bottom: 18px; display: none; padding: 14px 16px; }
+.console.on { display: block; }
+.console .chead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.console pre { margin: 0; max-height: 42vh; overflow: auto; font-size: .82rem; line-height: 1.45; white-space: pre-wrap; word-break: break-word; background: var(--soft); border-radius: 8px; padding: 10px 12px; }
+.console .heard { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--s1); background: color-mix(in srgb, var(--s1) 8%, transparent); border-radius: 0 8px 8px 0; }
 .viewer { margin-bottom: 14px; display: none; padding: 14px 16px; }
 .viewer.on { display: block; }
 .viewer .vhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -213,9 +222,14 @@ details summary { cursor: pointer; color: var(--text-2); font-size: .95rem; marg
     <div class="pbar"><i id="pfill"></i></div>
     <ol class="steps" id="psteps"></ol>
   </div>
+  <div class="card console" id="console">
+    <div class="chead"><b id="ctitle"></b><span><button class="btn small" id="cstop">Stop</button> <button class="btn small" id="cclose">Close</button></span></div>
+    <pre id="clines"></pre>
+    <div class="heard" id="cheard" hidden></div>
+  </div>
 
   <section class="panel" data-panel="overview">
-    <div class="actions" id="actions"></div>
+    <div class="card" id="runCard"><div class="actions" id="actions"></div><div class="picker" id="picker" hidden></div></div>
     <div class="tiles" id="tiles"></div>
     <h2>Latest reports</h2>
     <div class="card" id="latestReports"></div>
@@ -272,7 +286,7 @@ details summary { cursor: pointer; color: var(--text-2); font-size: .95rem; marg
       <div class="card"><h3>4 · Bring in old filled PDFs</h3><span class="cmd">uv run add-old-pdfs ~/old_forms</span>
         Copies them in and rebuilds the Excel file so every report, old and new, is in one place.</div>
       <div class="card"><h3>This page</h3><span class="cmd">uv run dashboard</span>
-        Starts the page with its buttons (each one opens a Terminal window running the command). It rebuilds on every load, reloads every 30 seconds (not during a run) and stays where you were. Nothing leaves this computer — it runs on this Mac only.</div>
+        Starts the page with its buttons. Each button runs its step right here — you talk, the page shows what was heard and the filled form; no other window opens. It rebuilds on every load, reloads every 30 seconds (not during a run) and stays where you were. Nothing leaves this computer — it runs on this Mac only.</div>
     </div>
   </section>
 </div>
@@ -335,19 +349,62 @@ document.getElementById("stamp").textContent = CAN_RUN ? `live · rebuilt ${DATA
 // ---- the buttons: each one asks the dashboard server (this Mac only) to run a command
 let toastTimer;
 function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("on"), 6000); }
-function run(name) {
-  fetch(`/run/${name}`, {method: "POST", headers: {"X-VFF-Token": TOKEN}})
-    .then(r => r.json()).then(j => toast(j.message))
-    .catch(() => toast("The dashboard isn't running any more. Start it again with: uv run dashboard"));
+const gone = () => toast("The dashboard isn't running any more. Start it again with: uv run dashboard");
+function post(path, body) {
+  return fetch(path, {method: "POST", headers: {"X-VFF-Token": TOKEN, "Content-Type": "application/json"}, body: JSON.stringify(body || {})})
+    .then(r => r.json());
+}
+function run(name, choice) {
+  post(`/run/${name}`, {choice: choice || ""}).then(j => { toast(j.message); if (j.ok && BUTTONS_WITH_OUTPUT.has(name)) openConsole(); })
+    .catch(gone);
 }
 const BUTTONS = [["record", "🎙", "Record a report", "primary"], ["live-test", "🗣", "Spoken test"], ["typed-test", "⌨", "Typed test (no microphone)"],
                  ["excel", "📊", "Open the Excel tracker"], ["records", "📁", "Open the records folder"]];
+const BUTTONS_WITH_OUTPUT = new Set(["record", "live-test", "typed-test"]);
+// what each button asks before it starts: the form to fill, or the script to read
+const PICKS = {
+  record: {q: "Which form? Click it — or click \"Say it\" and name the form out loud to start.", chips: [...[...DATA.forms].sort((a, b) => (a.status !== "approved") - (b.status !== "approved")).map(f => [f.id, f.title]), ["any", "Any — every form that fits the story"], ["voice", "🎤 Say it — \"OSHA form 301\", \"South Dakota form\" or \"Mishap\" starts the recording"]]},
+  "live-test": {q: "Which script will you read?", chips: DATA.scripts.map(s => [String(s.n), `${s.n} · ${s.title}`])},
+  "typed-test": {q: "Which script?", chips: [...DATA.scripts.map(s => [String(s.n), `${s.n} · ${s.title}`]), ["all", "All of them"]]},
+};
 document.getElementById("actions").innerHTML = CAN_RUN
-  ? BUTTONS.map(([n, ic, label, cls]) => `<button class="btn ${cls || ""}" data-run="${n}"><span class="ic">${ic}</span>${esc(label)}</button>`).join("") + `<span class="hint">Each button opens a Terminal window and runs the step there.</span>`
+  ? BUTTONS.map(([n, ic, label, cls]) => `<button class="btn ${cls || ""}" data-pick="${n}"><span class="ic">${ic}</span>${esc(label)}</button>`).join("") + `<span class="hint">Everything runs right here — no other window opens.</span>`
   : `<span class="hint">To get click-to-run buttons here, start the page with <code>uv run dashboard</code>.</span>`;
-document.querySelectorAll("[data-run]").forEach(b => b.addEventListener("click", () => run(b.dataset.run)));
+const picker = document.getElementById("picker");
+function showPicker(name) {
+  const pick = PICKS[name];
+  if (!pick) { run(name); return; }
+  picker.hidden = false;
+  picker.innerHTML = `<div class="q">${esc(pick.q)}</div><div class="chips">${pick.chips.map(([v, label]) => `<button class="btn small" data-choice="${esc(v)}">${esc(label)}</button>`).join("")}</div>`;
+  picker.querySelectorAll("[data-choice]").forEach(b => b.addEventListener("click", () => { run(name, b.dataset.choice); if (name !== "record") showPicker("record"); }));
+  picker.querySelector("[data-choice='voice']")?.classList.add("primary");
+}
+document.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => showPicker(b.dataset.pick)));
+if (CAN_RUN) showPicker("record");  // the form choice is right there when the page opens
 const recordTop = document.getElementById("recordTop");
-recordTop.addEventListener("click", () => run("record"));
+recordTop.addEventListener("click", () => { openTab("overview"); showPicker("record"); document.getElementById("runCard").scrollIntoView({behavior: "smooth"}); });
+
+// ---- the output of the running command, shown on the page instead of a Terminal window
+const consoleCard = document.getElementById("console"), clines = document.getElementById("clines");
+let shownLines = 0, consoleRun = "";
+function openConsole() { consoleCard.classList.add("on"); }
+document.getElementById("cclose").addEventListener("click", () => consoleCard.classList.remove("on"));
+document.getElementById("cstop").addEventListener("click", () => post("/stop").then(j => toast(j.message)).catch(gone));
+function drawOutput(o) {
+  if (!o.title) return;
+  const key = `${o.title}@${o.started}`;
+  if (key !== consoleRun) { consoleRun = key; shownLines = 0; clines.textContent = ""; document.getElementById("cheard").hidden = true; openConsole(); }
+  if (o.total < shownLines) { shownLines = 0; clines.textContent = ""; }
+  if (o.lines.length) {
+    clines.textContent += (clines.textContent ? "\n" : "") + o.lines.join("\n");
+    shownLines = o.total;
+    clines.scrollTop = clines.scrollHeight;
+    const heard = clines.textContent.match(/What I heard:\n\s*(.+)/);
+    if (heard) { const h = document.getElementById("cheard"); h.hidden = false; h.innerHTML = `<b>What it heard:</b> ${esc(heard[1])}`; }
+  }
+  document.getElementById("ctitle").textContent = o.running ? `${o.title} — running since ${o.started}` : `${o.title} — finished${o.exit ? ` (stopped, code ${o.exit})` : ""}`;
+  document.getElementById("cstop").hidden = !o.running;
+}
 document.getElementById("reportCount").textContent = reports.length || "";
 document.getElementById("fixCount").textContent = fixes.length || "";
 
@@ -489,6 +546,7 @@ try { const v = JSON.parse(recall("vff-view") || "null"); if (v) showForm(v.id, 
 
 // ---- the progress bar: asks the dashboard server every second where the current run is
 const progressCard = document.getElementById("progress");
+const PAGE_OPENED = Date.now() / 1000;
 const SHOW_DONE_FOR = 180, STALLED_AFTER = 120, FORGET_AFTER = 20 * 60;  // seconds
 const mmss = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 function drawProgress(p) {
@@ -498,7 +556,7 @@ function drawProgress(p) {
   if (!show) return;
   const stalled = running && p.age > STALLED_AFTER;
   progressCard.className = `card progress on ${p.step === "done" ? "done" : p.step === "stopped" ? "stopped" : stalled ? "stalled" : ""}`;
-  document.getElementById("pmsg").textContent = stalled ? `${p.message} — no news for ${Math.round(p.age / 60)} min; check the Terminal window` : p.message;
+  document.getElementById("pmsg").textContent = stalled ? `${p.message} — no news for ${Math.round(p.age / 60)} min; see the output below` : p.message;
   document.getElementById("ptime").textContent = running ? `${p.percent}% · ${mmss(p.updated - p.started + p.age)}` : p.step === "done" ? `took ${mmss(p.updated - p.started)}` : "";
   document.getElementById("pfill").style.width = `${p.step === "stopped" ? 100 : p.percent}%`;
   const names = (p.steps || []).map(st => st[0]), at = names.indexOf(p.step);
@@ -522,10 +580,16 @@ function showWhatFinished(p) {
 }
 let running = false;
 if (CAN_RUN) {
-  const poll = () => fetch("/progress").then(r => r.json()).then(p => {
-    running = !!p.step && p.step !== "done" && p.step !== "stopped" && p.age < FORGET_AFTER;
+  let outputRunning = false;
+  const poll = () => Promise.all([
+    fetch("/progress").then(r => r.json()),
+    fetch(`/output?since=${shownLines}`).then(r => r.json()),
+  ]).then(([p, o]) => {
+    outputRunning = !!o.running;
+    running = outputRunning || (!!p.step && p.step !== "done" && p.step !== "stopped" && p.age < FORGET_AFTER);
+    drawOutput(o);
     drawProgress(p);
-    if (p.step === "done") showWhatFinished(p);
+    if (p.step === "done" && !outputRunning && p.updated >= PAGE_OPENED - 10) showWhatFinished(p);  // only a run that ended while this page was open
   }).catch(() => {});
   poll();
   setInterval(poll, 1000);

@@ -20,13 +20,13 @@ from vff.cli.make_report import file_report, missing_line
 from vff.dashboard import write_dashboard
 from vff.export_excel import rebuild_workbook
 from vff.extract import DEFAULT_MODEL
-from vff.forms import FormMap, forms_said, load_forms
+from vff.forms import FormMap, forms_said, load_forms, opens_story
 from vff.incident import PROFILE_PATH, load_profile
 from vff import progress
 from vff.paths import RECORDS_DIR
 from vff.system import show, speak
 from vff.triggers import parse_stop_phrases
-from vff.voice import listen
+from vff.voice import listen, wait_for_start
 
 ORDER = """Say it in this order:
   1. Who you are — name, job title, phone
@@ -42,6 +42,7 @@ ORDER = """Say it in this order:
      and the ISB and SIB investigators"""  # README: "What to say"
 PAUSE_SECONDS = 10.0  # thinking pauses are normal; only "stop recording" or this much silence ends the story
 ANY_FORM = ("any", "all", "every", "everything", "whatever")  # answers that mean "every form that fits"
+VOICE = "voice"  # --form voice: no question — the recording starts when a form's name (or a report's opening) is heard
 ANSWER_SECONDS = 8.0  # how long the first question waits for a spoken answer before asking you to type
 
 
@@ -66,7 +67,7 @@ def choose_form(forms: list[FormMap], hear, read_line) -> list[FormMap]:
     answer. Returns the chosen form(s); [] means every form that fits the story."""
     menu = "\n".join(f"  {i}. {f.title} — say \"{f.say[0]}\"" for i, f in enumerate(forms, 1)) + "\n  0. Any — every form that fits"
     _say("\n" + ORDER)
-    progress.step("ask", "Which form? Say its name in the Terminal window — e.g. \"OSHA form 301\"")
+    progress.step("ask", "Which form? Say its name — e.g. \"OSHA form 301\", \"South Dakota form\", \"Mishap\" or \"any\"")
     _say("\nWhich form are we filling out? Say it (e.g. \"OSHA form 301\") — the recording starts right after.\n" + menu)
     speak("Which form are we filling out? " + ", ".join(f.say[0] for f in forms) + ", or any.")
     answer = hear()
@@ -77,22 +78,40 @@ def choose_form(forms: list[FormMap], hear, read_line) -> list[FormMap]:
             return chosen
         _say("  I didn't catch a form name in that.")
     while True:
-        typed = read_line(f"Type the number (1-{len(forms)}, or 0 for any): ").strip()
+        try:
+            typed = read_line(f"Type the number (1-{len(forms)}, or 0 for any): ").strip()
+        except EOFError:  # no keyboard (started from the dashboard): every form that fits
+            _say("  No answer — every form that fits the story will be filled.")
+            return []
         chosen = _form_from_answer(typed, forms)
         if chosen is not None:
             return chosen
         _say(f"  Please type a number from 0 to {len(forms)}.")
 
 
-def _record(hints: str, chosen: list[FormMap]) -> str | None:
-    """Recording starts right after the form is chosen — naming the form is the start cue."""
+def wait_for_form(forms: list[FormMap], hints: str) -> tuple[list[FormMap], str]:
+    """No question: wait until a form's name is said ("OSHA form 301", "Mishap") or a report begins ("This report is
+    by…"), then that form is the one — and those words are the start of the story. Returns (forms, the words)."""
+    names = ", ".join(f'"{f.say[0]}"' for f in forms)
+    _say("\n" + ORDER)
+    _say(f"\nListening. Say the form's name to start — {names} — then tell what happened.")
+    progress.step("ask", f"Say the form's name to start — {names}")
+    heard = wait_for_start(hints, on_heard=lambda text: _say(f'  (heard "{text}" — say a form\'s name to start)'),
+                           starts_story=lambda text: opens_story(text, forms))
+    return forms_said(heard, forms), heard
+
+
+def _record(hints: str, chosen: list[FormMap], opening: str = "") -> str | None:
+    """Recording starts right after the form is chosen — naming the form is the start cue. `opening` = words already
+    heard that begin the story (voice start); they are kept."""
     stop = parse_stop_phrases("")[0]
     what = " and ".join(f.title for f in chosen) if chosen else "every form that fits the story"
-    _say(f"\nOK — {what}. Go ahead: start with who you are.")
+    _say(f"\nOK — {what}. Go ahead" + (", carry on." if opening else ": start with who you are."))
     speak(f"OK, {what}. Go ahead.")
     _say(f'● Recording…  say "{stop}" when you\'re done')
     progress.step("listen", f'Listening — {what}. Tell what happened, then say "{stop}"')
-    return listen(PAUSE_SECONDS, hints, wait_seconds=30.0, phrases=parse_stop_phrases(""))
+    rest = listen(PAUSE_SECONDS, hints, wait_seconds=30.0, phrases=parse_stop_phrases(""))
+    return " ".join(part for part in (opening, rest) if part) or None
 
 
 def _check_line(result) -> str:
@@ -105,7 +124,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--hints", default="", help="names or words to spell right, e.g. \"Marcus Hill, Greenville\"")
     parser.add_argument("--model", default=DEFAULT_MODEL)
-    parser.add_argument("--form", default="", help="skip the first question: form id(s), e.g. osha_301 or osha_301,sd_froi")
+    parser.add_argument("--form", default="", help="skip the first question: form id(s), e.g. osha_301 or osha_301,sd_froi; "
+                        "any = every form that fits; voice = start when a form's name is said")
+    parser.add_argument("--no-open", action="store_true", help="don't open the filled forms at the end (the dashboard shows them)")
     args = parser.parse_args()
 
     _say("Voice Form Filler")
@@ -120,7 +141,12 @@ def main() -> int:
     progress.begin("report", "Starting…")
     try:
         forms = sorted(load_forms(), key=lambda f: f.status != "approved")  # the everyday forms first, drafts last
-        if args.form:
+        opening = ""
+        if args.form.strip().lower() == VOICE:
+            chosen, opening = wait_for_form(forms, args.hints)
+        elif args.form.strip().lower() in ANY_FORM:
+            chosen = []  # every form that fits the story
+        elif args.form:
             ids = {w.strip() for w in args.form.split(",") if w.strip()}
             chosen = [f for f in forms if f.id in ids]
             if len(chosen) != len(ids):
@@ -128,7 +154,7 @@ def main() -> int:
                 return 2
         else:
             chosen = choose_form(forms, lambda: listen(1.5, args.hints, wait_seconds=ANSWER_SECONDS), input)
-        heard = _record(args.hints, chosen)
+        heard = _record(args.hints, chosen, opening)
         if not heard:
             progress.fail("Nothing was heard")
             _say("Nothing was heard. Nothing saved.")
@@ -166,9 +192,10 @@ def main() -> int:
         _say(f"⚠ The Excel file wasn't updated ({err}). The forms are saved; run `uv run add-old-pdfs` to catch up.")
     progress.finish(f"Done — {len(results)} form(s) filled" if results else "Done — no form fits this story",
                     report=folder.name, pdfs=tuple(r.print_pdf.name for r in results))
-    for result in results:
-        show(result.print_pdf)  # the filled forms
-    _say(f"\nDone. Saved in {folder.relative_to(RECORDS_DIR.parent)}/" + (" — the forms are open." if results else ""))
+    if not args.no_open:
+        for result in results:
+            show(result.print_pdf)  # the filled forms
+    _say(f"\nDone. Saved in {folder.relative_to(RECORDS_DIR.parent)}/" + (" — the forms are open." if results and not args.no_open else ""))
     speak("Done. Your forms are ready." if results else "Done.")
     return 0
 

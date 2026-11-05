@@ -58,32 +58,55 @@ def percent(steps: list, step: str, part: tuple[int, int] | None) -> int:
 def begin(kind: str, message: str) -> None:
     """A new run starts: `kind` picks the steps shown (report, file or test)."""
     steps = [list(s) for s in STEPS[kind]]
-    _write({"kind": kind, "steps": steps, "step": steps[0][0], "message": message, "percent": 0,
+    _write({"kind": kind, "steps": steps, "step": steps[0][0], "message": message, "percent": 0, "pid": os.getpid(),
             "started": time.time(), "updated": time.time(), "report": "", "pdfs": [], "run": ""})
+
+
+def _current() -> dict:
+    """The run's state so far; a fresh one if the file is gone (deleted mid-run) so no field is ever missing."""
+    state = _read_file()
+    if "started" in state:
+        return state
+    return {"kind": "", "steps": [], "step": "", "message": "", "percent": 0, "pid": os.getpid(),
+            "started": time.time(), "updated": time.time(), "report": "", "pdfs": [], "run": ""}
 
 
 def step(name: str, message: str, part: tuple[int, int] | None = None) -> None:
     """The run reached `name`; `part` = (done, of) for a step with several pieces, e.g. form 2 of 3."""
-    state = _read_file()
+    state = _current()
     _write({**state, "step": name, "message": message, "updated": time.time(),
             "percent": percent(state.get("steps", []), name, part)})
 
 
 def finish(message: str, report: str = "", pdfs: tuple[str, ...] = (), run: str = "") -> None:
     """The run is done. `report` = the records/ folder and `pdfs` its printed forms; `run` = a live-test folder."""
-    state = _read_file()
+    state = _current()
     _write({**state, "step": "done", "message": message, "percent": 100, "updated": time.time(),
             "report": report, "pdfs": list(pdfs), "run": run})
 
 
 def fail(message: str) -> None:
-    state = _read_file()
+    state = _current()
     _write({**state, "step": STOPPED, "message": message, "updated": time.time()})
 
 
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True  # it exists but belongs to someone else
+    return True
+
+
 def read() -> dict:
-    """The current state for the page, with `age` = seconds since the last update; {} when there is none."""
+    """The current state for the page, with `age` = seconds since the last update; {} when there is none.
+    A run whose process is gone (window closed, Ctrl-C) is reported as stopped."""
     state = _read_file()
     if not state:
         return {}
+    running = state.get("step") not in ("done", STOPPED)
+    if running and state.get("pid") and not _alive(int(state["pid"])):
+        state = {**state, "step": STOPPED, "message": "The run ended before it finished (window closed?)"}
     return {**state, "age": round(time.time() - float(state.get("updated", 0)))}

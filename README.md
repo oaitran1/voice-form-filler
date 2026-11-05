@@ -140,7 +140,7 @@ latest run — kept apart from your real reports). Your recordings stay on your 
 |---|---|
 | **Use a voice memo, video, or text file** | `uv run make-report --input ~/Downloads/incident.m4a` |
 | What to say before you record | `uv run make-report --brief` |
-| The dashboard: reports filed, the forms, live-test accuracy, buttons that run each step, a progress bar while a report is being made, and the filled form shown on the page when it's done (this Mac only; Ctrl-C stops it). `--write` only writes `data_tracker/dashboard.html` | `uv run dashboard` |
+| The dashboard: reports filed, the forms, live-test accuracy, and buttons that run each step right on the page (pick the form, talk, watch the progress bar, see what was heard and the filled form — no other window opens). Start it once from a terminal so the microphone is allowed; Ctrl-C stops it. `--write` only writes `data_tracker/dashboard.html` | `uv run dashboard` |
 | **Bring in old filled PDFs** (once) | `uv run add-old-pdfs ~/old_reports` |
 
 **Start each recording with who is making the report**, e.g. *"This report is by Sam Park, Kitchen Manager,
@@ -165,8 +165,9 @@ skipped. Run `uv run add-old-pdfs` with nothing after it to just rebuild the Exc
 Say it in your own words — this order covers every box on OSHA 301 and the SD form.
 
 0. **Which form** — `uv run record` asks this first: say **"OSHA form 301"**, **"South Dakota form"** or **"Mishap"**
-   (or **"any"**, or type its number). Naming the form starts the recording — no Enter needed. Naming a form in
-   the story itself works too, and only that form is
+   (or **"any"**, or type its number). Naming the form starts the recording — no Enter needed. On the dashboard,
+   click the form's button, or click **Say it** and the recording starts the moment you name the form out loud.
+   Naming a form in the story itself works too, and only that form is
    filled (and only its questions are asked). Say none of them and every form that fits the story is filled.
 1. **Who you are** — "This report is by **[your name]**, **[job title]**, phone **[number]**."
    *Only if the report is for a different company than in `data/profile.yaml`:* "We are **[company name]**,
@@ -183,8 +184,8 @@ Say it in your own words — this order covers every box on OSHA 301 and the SD 
 7. **Safety, witness, reporting** — safety equipment provided? used? The witness's name. Who it was reported to,
    and the date.
 8. **Only if it applies** — the date they returned to work; the date of death.
-9. **Military mishap only** (ship, unit, command or base) — the ship's name, where it was (at sea / port, nearest
-   base, country), the exact space on the ship, the kind of event, the sequence of events with times, the weather,
+9. **Military mishap only** (ship, unit, command or base) — the kind of event and the mishap type (afloat, ashore,
+   aviation, motor vehicle …), the ship's name, where it was (at sea / port, nearest base, country), the exact space on the ship, the kind of event, the sequence of events with times, the weather,
    sea state, visibility, wind, and whether there were eyewitnesses. This fills the Mishap Information Worksheet.
    A preliminary report must have six boxes — the one-liner, the kind of event, the local time, the date it was
    reported to the safety office, and the ISB and SIB investigators — so say them; any left blank is flagged after filling.

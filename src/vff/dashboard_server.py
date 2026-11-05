@@ -1,82 +1,169 @@
-"""Serve the dashboard on this Mac only (127.0.0.1), so its buttons can start the app with a click.
+"""Serve the dashboard on this Mac only (127.0.0.1), so its buttons can run the app with a click — no Terminal window.
 
     GET  /                     the page, rebuilt from records/ and live_test/results/ on every load
     GET  /records/<r>/<f>.pdf  a filled PDF from records/
     GET  /progress             where the current run is (data_tracker/progress.json), for the progress bar
-    POST /run/<button>         runs that button's command (the fixed list below) — nothing else can be run
+    GET  /output?since=N       what the running command has printed so far (line N onwards)
+    POST /run/<button>         runs that button's command as a hidden process (the fixed list below) — nothing else
+    POST /stop                 stops the running command
 
-A button that needs the microphone or the keyboard (record, live-test) opens a new Terminal window, so you talk
-there and see the output. Every POST must carry the page's own one-time token, so another web page in the browser
-can't press the buttons.
+record and live-test use the microphone and speak through the speakers like before; only their words come to the
+page instead of a Terminal window. One command runs at a time. Every POST must carry the page's own one-time token,
+so another web page in the browser can't press the buttons.
 """
 
 import errno
 import json
+import os
 import re
 import secrets
-import shlex
 import subprocess
 import sys
+import threading
 import webbrowser
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from vff import progress
 from vff.dashboard import load_reports, load_runs, render
 from vff.export_excel import WORKBOOK
+from vff.forms import load_forms
+from vff.live_test import load_scripts
 from vff.paths import DATA_TRACKER_DIR, RECORDS_DIR, ROOT
 from vff.system import show
 
 HOST, PORT = "127.0.0.1", 8631
 PORT_TRIES = 10  # if the port is taken by another program, the next ones are tried
-SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")  # a record folder or PDF name; no slashes, no leading dot
+SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")  # a record folder or PDF name; no slashes
+KEEP_LINES = 400  # of a command's output, for the page
+RUNS_LOG = DATA_TRACKER_DIR / "runs.log"  # everything every run printed, kept so a failed run can be read later
+STOP_WAIT_SECONDS = 5
+
+
+def _record_command(choice: str) -> list[str]:
+    """`choice` = a form id, "any" for every form that fits, or "voice" to start when a form's name is said."""
+    ids = {f.id for f in load_forms()}
+    if choice not in ("any", "voice") and choice not in ids:
+        raise ValueError(f"unknown form {choice!r}")
+    return [sys.executable, "-m", "vff.cli.record", "--form", choice, "--no-open"]
+
+
+def _test_command(choice: str, typed: bool) -> list[str]:
+    """`choice` = a script number, or "all"."""
+    command = [sys.executable, "-m", "vff.cli.live_test", "--no-open"] + (["--typed"] if typed else [])
+    if choice != "all":
+        if not (choice.isdigit() and 1 <= int(choice) <= len(load_scripts())):
+            raise ValueError(f"unknown script {choice!r}")
+        command += ["--script", choice]
+    elif not typed:
+        raise ValueError("a spoken test is one script at a time — pick one")
+    return command
 
 
 @dataclass(frozen=True)
 class Button:
-    terminal: str = ""  # a command to run in a new Terminal window, from the app folder
+    title: str
+    command: Callable[[str], list[str]] | None = None  # choice -> argv for a command run in the background
     opens: Path | None = None  # a file or folder to open instead
     message: str = ""  # shown on the page after the click
 
 
 BUTTONS = {
-    "record": Button("uv run record", message="A Terminal window opened — say what happened there."),
-    "live-test": Button("uv run live-test", message="A Terminal window opened — pick a script and read it out loud there."),
-    "typed-test": Button("uv run live-test --typed --no-open", message="Typed test running in a Terminal window; this page updates when it's done."),
-    "excel": Button(opens=WORKBOOK, message="Opening the Excel tracker."),
-    "records": Button(opens=RECORDS_DIR, message="Opening the records folder."),
+    "record": Button("Record a report", _record_command, message="Listening — tell what happened. Say \"stop recording\" when you're done."),
+    "live-test": Button("Spoken test", lambda c: _test_command(c, typed=False), message="Spoken test started — read the script out loud; its first words start the recording."),
+    "typed-test": Button("Typed test", lambda c: _test_command(c, typed=True), message="Typed test running; this page follows along."),
+    "excel": Button("Excel tracker", opens=WORKBOOK, message="Opening the Excel tracker."),
+    "records": Button("Records folder", opens=RECORDS_DIR, message="Opening the records folder."),
 }
 
 
-def _applescript_text(text: str) -> str:
-    return text.replace("\\", "\\\\").replace('"', '\\"')
+@dataclass
+class Run:
+    """One command running in the background and what it has printed."""
+    name: str
+    title: str
+    process: subprocess.Popen
+    started: datetime
+    lines: list[str] = field(default_factory=list)
+    lock: threading.Lock = field(default_factory=threading.Lock)
+
+    @property
+    def alive(self) -> bool:
+        return self.process.poll() is None
+
+    def _read(self) -> None:
+        DATA_TRACKER_DIR.mkdir(parents=True, exist_ok=True)
+        with open(RUNS_LOG, "a", encoding="utf-8") as log:
+            log.write(f"\n=== {self.started:%Y-%m-%d %H:%M:%S} {self.title} ===\n")
+            for line in self.process.stdout:  # type: ignore[union-attr]
+                log.write(line)
+                with self.lock:
+                    self.lines.append(line.rstrip("\n"))
+                    del self.lines[:-KEEP_LINES]
+        self.process.wait()
+
+    def snapshot(self, since: int) -> dict:
+        with self.lock:
+            total = len(self.lines)
+            lines = self.lines[max(0, since - (total - KEEP_LINES) if total > KEEP_LINES else since):] if since < total else []
+        return {"name": self.name, "title": self.title, "running": self.alive, "exit": self.process.poll(),
+                "started": self.started.strftime("%H:%M:%S"), "lines": lines, "total": total}
+
+    def stop(self) -> None:
+        if self.alive:
+            self.process.terminate()
+            try:
+                self.process.wait(STOP_WAIT_SECONDS)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
 
 
-def open_terminal(command: str) -> None:
-    """Run `command` in a new Terminal window, from the app folder (Mac only)."""
-    if sys.platform != "darwin":
-        raise OSError("the buttons open a Terminal window, which only works on a Mac")
-    log = DATA_TRACKER_DIR / "runs.log"  # everything the window shows, kept so a failed run can be read later
-    DATA_TRACKER_DIR.mkdir(parents=True, exist_ok=True)
-    line = _applescript_text(f"cd {shlex.quote(str(ROOT))} && {command} 2>&1 | tee -a {shlex.quote(str(log))}")
-    script = f'tell application "Terminal"\nactivate\ndo script "{line}"\nend tell'
-    done = subprocess.run(["osascript", "-e", script], check=False, capture_output=True, text=True)
-    if done.returncode != 0:
-        raise OSError(done.stderr.strip() or "Terminal could not be opened")
+class Runner:
+    """At most one command at a time."""
+
+    def __init__(self) -> None:
+        self.current: Run | None = None
+        self.lock = threading.Lock()
+
+    def start(self, name: str, choice: str) -> str:
+        """Press `name` with `choice`; returns the message for the page."""
+        button = BUTTONS[name]
+        if button.opens is not None:
+            if not button.opens.exists():
+                raise FileNotFoundError(f"{button.opens.name} doesn't exist yet")
+            show(button.opens)
+            return button.message
+        if button.command is None:
+            raise ValueError("this button opens nothing and runs nothing")
+        argv = button.command(choice)
+        with self.lock:
+            if self.current is not None and self.current.alive:
+                raise RuntimeError(f"{self.current.title} is still running — stop it first")
+            process = subprocess.Popen(argv, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, text=True, errors="replace", bufsize=1,
+                                       env={**os.environ, "PYTHONUNBUFFERED": "1"})
+            label = button.title if choice in ("any", "all") else f"{button.title} — {'by voice' if choice == 'voice' else choice}"
+            self.current = Run(name, label, process, datetime.now())
+            threading.Thread(target=self.current._read, daemon=True).start()
+        return button.message
+
+    def output(self, since: int) -> dict:
+        return self.current.snapshot(since) if self.current else {"running": False, "lines": [], "total": 0}
+
+    def stop(self) -> str:
+        run = self.current
+        if run is None or not run.alive:
+            return "Nothing is running."
+        run.stop()
+        progress.fail("Stopped from the dashboard")
+        return f"{run.title} stopped."
 
 
-def press(name: str) -> str:
-    """Do what the button `name` does; returns the message for the page."""
-    button = BUTTONS[name]
-    if button.opens is not None:
-        if not button.opens.exists():
-            raise FileNotFoundError(f"{button.opens.name} doesn't exist yet")
-        show(button.opens)
-    else:
-        open_terminal(button.terminal)
-    return button.message
+RUNNER = Runner()
 
 
 def record_pdf(folder: str, name: str) -> Path | None:
@@ -102,38 +189,55 @@ class Handler(BaseHTTPRequestHandler):
         self._send(status, json.dumps(payload).encode("utf-8"), "application/json")
 
     def do_GET(self) -> None:  # the name http.server expects
-        path = urlsplit(self.path).path
-        if path in ("/", "/index.html"):
+        url = urlsplit(self.path)
+        if url.path in ("/", "/index.html"):
             page = render(load_runs(), load_reports(), token=self.token)
             self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
             return
-        if path == "/progress":
+        if url.path == "/progress":
             self._json(200, **progress.read())
             return
-        parts = path.split("/")
+        if url.path == "/output":
+            since = parse_qs(url.query).get("since", ["0"])[0]
+            self._json(200, **RUNNER.output(int(since) if since.isdigit() else 0))
+            return
+        parts = url.path.split("/")
         pdf = record_pdf(parts[2], parts[3]) if len(parts) == 4 and parts[1] == "records" else None
         if pdf is None:
             self._send(404, b"not found", "text/plain")
             return
         self._send(200, pdf.read_bytes(), "application/pdf")
 
+    def _body(self) -> dict:
+        length = int(self.headers.get("Content-Length", "0") or 0)
+        try:
+            body = json.loads(self.rfile.read(length) or b"{}")
+        except ValueError:
+            return {}
+        return body if isinstance(body, dict) else {}
+
     def do_POST(self) -> None:
         origin = self.headers.get("Origin", "")
         if self.headers.get("X-VFF-Token", "") != self.token or (origin and origin != f"http://{self.headers.get('Host', '')}"):
             self._json(403, ok=False, message="This page is out of date — reload it.")
             return
-        name = urlsplit(self.path).path.removeprefix("/run/")
+        path = urlsplit(self.path).path
+        if path == "/stop":
+            self._json(200, ok=True, message=RUNNER.stop())
+            return
+        name = path.removeprefix("/run/")
         if name not in BUTTONS:
             self._json(404, ok=False, message="Unknown button.")
             return
+        choice = str(self._body().get("choice", "")).strip()[:40]
         try:
-            self._json(200, ok=True, message=press(name))
-        except OSError as err:
-            self._json(500, ok=False, message=f"Couldn't do that: {err}")
+            self._json(200, ok=True, message=RUNNER.start(name, choice))
+        except (OSError, ValueError, RuntimeError) as err:
+            self._json(409 if isinstance(err, RuntimeError) else 500, ok=False, message=f"Couldn't do that: {err}")
 
     def log_message(self, fmt, *args) -> None:  # one short line per click, silence for page loads
         if self.command == "POST":
-            print(f"  button {self.path.removeprefix('/run/')} → {args[1]}", flush=True)
+            print(f"  {self.path.lstrip('/')} → {args[1]}", flush=True)
 
 
 def _bind(port: int) -> ThreadingHTTPServer:
@@ -160,4 +264,5 @@ def serve(port: int = PORT, open_page: bool = True) -> None:
     except KeyboardInterrupt:
         print("\nDashboard stopped.")
     finally:
+        RUNNER.stop()
         server.server_close()
