@@ -19,7 +19,8 @@ rules:
 fields:
   # --- when / where / what kind ---
   - {key: incident_date, label: Date of the incident, kind: date, format: mm/dd/yyyy}
-  - {key: incident_time, label: Time of the incident, kind: time, hint: "Clock time only, e.g. 9:40"}
+  - {key: incident_time, label: Time of the incident, kind: time,
+     hint: "Clock time only, e.g. 9:40 or 1842 — when it happened, not when it was reported, put out or written up"}
   - {key: incident_ampm, label: Incident AM or PM, kind: choice, options: [AM, PM], time_of: incident_time}
   - {key: work_start_time, label: Time the person began work that day, kind: time}
   - {key: work_start_ampm, label: Began work AM or PM, kind: choice, options: [AM, PM], time_of: work_start_time}
@@ -138,8 +139,8 @@ fields:
   - {key: policy_number, label: Insurance policy number, group: company}
 
   # --- military mishap (Navy / DoD worksheet) — asked as its own question; all blank for a civilian workplace ---
-  - {key: mishap_event_type, label: "Kind of military mishap event, e.g. Class C afloat fire, aviation ground mishap", group: mishap,
-     hint: "Only for a ship, unit, command or base; blank for a civilian workplace"}
+  - {key: mishap_event_type, label: "Kind of military mishap event (a fire, a man overboard, a collision, a ground mishap …)", group: mishap,
+     hint: "The story's own words for the event, e.g. 'fire' or 'electrical fire', plus its class (Class A, B, C or D) only when the story says one; never add words the story doesn't use; only for a ship, unit, command or base; blank for a civilian workplace"}
   - {key: mishap_type, label: "Mishap type — the category of the mishap, picked from the story", kind: choice, group: mishap,
      options: [Afloat, Ashore, Aviation, Motor vehicle, Diving, Weapons, Off-duty],
      hint: "Afloat = aboard a ship or boat; Ashore = on a base or shore facility; Aviation = an aircraft; Motor vehicle; Diving; Weapons = weapons or explosives; Off-duty = not at work. Pick the one that fits the story; blank only if none does"}
