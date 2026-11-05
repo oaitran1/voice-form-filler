@@ -14,6 +14,16 @@ Everything runs on your computer; nothing is sent to the internet.
 
 ![How it works: talk, listen, understand, fill, keep](docs/architecture.png)
 
+## What it looks like
+
+One page in your browser, nothing else to open. Pick the form, record, and the filled form appears below:
+
+![The dashboard: record a report, use a phone recording, run a test; reports filed and the latest forms](docs/dashboard.png)
+
+With the DON Mishap Classification Assistant in place, the same page gets a second tab for it:
+
+![The Voice RMI Assistant tab](docs/assistant_tab.png)
+
 ## Step by step
 
 Works on Mac, Windows and Linux. Needs about 16 GB of memory and 12 GB of free disk space. Fastest on an Apple
