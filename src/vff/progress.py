@@ -78,6 +78,13 @@ def step(name: str, message: str, part: tuple[int, int] | None = None) -> None:
             "percent": percent(state.get("steps", []), name, part)})
 
 
+def writing(report: str = "", run: str = "") -> None:
+    """The folder this run is filling — `report` in records/, `run` in live_test/results/. A run stopped from the
+    dashboard before it finishes has that folder thrown away."""
+    state = _current()
+    _write({**state, "updated": time.time(), **({"report": report} if report else {}), **({"run": run} if run else {})})
+
+
 def finish(message: str, report: str = "", pdfs: tuple[str, ...] = (), run: str = "") -> None:
     """The run is done. `report` = the records/ folder and `pdfs` its printed forms; `run` = a live-test folder."""
     state = _current()
@@ -108,5 +115,5 @@ def read() -> dict:
         return {}
     running = state.get("step") not in ("done", STOPPED)
     if running and state.get("pid") and not _alive(int(state["pid"])):
-        state = {**state, "step": STOPPED, "message": "The run ended before it finished (window closed?)"}
+        state = {**state, "step": STOPPED, "message": "The run ended before it finished — see its output below"}
     return {**state, "age": round(time.time() - float(state.get("updated", 0)))}

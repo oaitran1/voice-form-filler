@@ -3,8 +3,8 @@
     uv run record
     uv run record --form osha_301      # skip the first question
 
-It first asks which form you are filling out — say "OSHA form 301", "South Dakota form" or "Mishap" (or "any" for
-every form that fits, or type its number). Naming the form starts the recording: it says "Go ahead", you tell the
+It first asks which form you are filling out — say "OSHA form 301" or "Mishap" (or "any" for every form that
+fits, or type its number). Naming the form starts the recording: it says "Go ahead", you tell the
 story in your own words (start with who you are) and say "stop recording". The app writes down what it heard, fills
 the form(s), saves them in records/<date>_incident/, adds the report to data_tracker/reports.xlsx, and opens them.
 """
@@ -67,7 +67,7 @@ def choose_form(forms: list[FormMap], hear, read_line) -> list[FormMap]:
     answer. Returns the chosen form(s); [] means every form that fits the story."""
     menu = "\n".join(f"  {i}. {f.title} — say \"{f.say[0]}\"" for i, f in enumerate(forms, 1)) + "\n  0. Any — every form that fits"
     _say("\n" + ORDER)
-    progress.step("ask", "Which form? Say its name — e.g. \"OSHA form 301\", \"South Dakota form\", \"Mishap\" or \"any\"")
+    progress.step("ask", "Which form? Say its name — " + ", ".join(f'"{f.say[0]}"' for f in forms) + ' or "any"')
     _say("\nWhich form are we filling out? Say it (e.g. \"OSHA form 301\") — the recording starts right after.\n" + menu)
     speak("Which form are we filling out? " + ", ".join(f.say[0] for f in forms) + ", or any.")
     answer = hear()

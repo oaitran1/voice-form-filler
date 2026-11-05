@@ -41,7 +41,7 @@ class FormMap:
     pdf_path: Path | None
     applies_when: tuple[str, ...]  # kinds of incident this form is for; empty = always
     boxes: tuple[FormBox, ...]
-    status: str = "draft"  # draft (auto-made, not yet reviewed) | approved
+    status: str = "draft"  # draft (auto-made, not yet reviewed) | approved | off (kept, but not offered or filled)
     needs_any: tuple[str, ...] = ()  # only when at least one of these facts was said (e.g. a ship name)
     say: tuple[str, ...] = ()  # words that pick this form out loud ("OSHA form", "Mishap"); none said = forms that fit
 
@@ -223,5 +223,9 @@ def load_form(path: Path, facts_path: Path = FACTS_PATH) -> FormMap:
     )
 
 
+OFF = "off"
+
+
 def load_forms(folder: Path = FORMS_DIR) -> list[FormMap]:
-    return [load_form(p) for p in sorted(Path(folder).glob("*.yaml"))]
+    """Every form the app offers — a form with `status: off` is left out (its map stays on disk)."""
+    return [f for f in (load_form(p) for p in sorted(Path(folder).glob("*.yaml"))) if f.status != OFF]

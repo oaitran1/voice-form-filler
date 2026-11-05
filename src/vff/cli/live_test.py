@@ -101,6 +101,7 @@ def main() -> int:
     transcriber.go_offline()
     rows = []
     progress.begin("test", "Starting the test…")
+    progress.writing(run=run_dir.name)
     try:
         for number, script in enumerate(scripts, start=1):
             _show(number, len(scripts), script)

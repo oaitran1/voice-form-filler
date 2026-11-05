@@ -13,6 +13,7 @@ from pathlib import Path
 from vff.dashboard_page import PAGE, REDIRECT
 from vff.forms import load_forms
 from vff.live_test import LOOK, RESULTS_DIR, RIGHT, WRONG, load_scripts
+from vff.media import AUDIO_VIDEO_TYPES, TEXT_TYPES
 from vff.paths import DATA_TRACKER_DIR, RECORDS_DIR
 
 RUN_TITLE = re.compile(r"^# Live test — (\d{4}-\d{2}-\d{2} \d{2}:\d{2})")
@@ -190,6 +191,7 @@ def _data(runs: list[Run], reports: list[Report]) -> dict:
         "records_dir": str(Path(RECORDS_DIR).resolve()),
         "forms": [{"id": f.id, "title": f.title, "say": list(f.say), "status": f.status} for f in load_forms()],
         "scripts": [{"n": i, "id": s.id, "title": s.title} for i, s in enumerate(load_scripts(), start=1)],
+        "file_types": sorted(AUDIO_VIDEO_TYPES | TEXT_TYPES),
         "reports": [
             {"id": r.id, "created": r.created, "source": r.source, "story": r.story,
              "forms": [{"form": f.form, "title": f.title, "filled": f.filled, "to_check": f.to_check,

@@ -107,6 +107,9 @@ p { margin: 0 0 10px; }
 .btn.primary { background: var(--s1); border-color: var(--s1); color: #fff; }
 .btn.primary:hover { filter: brightness(1.08); background: var(--s1); }
 .btn .ic { font-size: 1.1rem; }
+.btn.stop { background: var(--critical); border-color: var(--critical); color: #fff; }
+.btn.stop:hover { filter: brightness(1.08); background: var(--critical); }
+.btn:disabled { opacity: .6; cursor: wait; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 #runCard { margin-bottom: 18px; }
 .actions .hint { font-size: .85rem; color: var(--muted); }
@@ -128,6 +131,8 @@ p { margin: 0 0 10px; }
 .picker { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .picker .q { font-weight: 600; margin-bottom: 8px; }
 .picker .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.picker .file { margin: 0 0 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.picker .file input { font: inherit; font-size: .9rem; }
 .console { margin-bottom: 18px; display: none; padding: 14px 16px; }
 .console.on { display: block; }
 .console .chead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -219,11 +224,12 @@ details summary { cursor: pointer; color: var(--text-2); font-size: .95rem; marg
 
   <div class="card progress" id="progress" aria-live="polite">
     <div class="ptop"><span class="pmsg" id="pmsg"></span><span class="ptime" id="ptime"></span></div>
+    <button class="btn stop" id="pstop" hidden title="Ends the run now and throws away anything it saved">■ Stop — save nothing</button>
     <div class="pbar"><i id="pfill"></i></div>
     <ol class="steps" id="psteps"></ol>
   </div>
   <div class="card console" id="console">
-    <div class="chead"><b id="ctitle"></b><span><button class="btn small" id="cstop">Stop</button> <button class="btn small" id="cclose">Close</button></span></div>
+    <div class="chead"><b id="ctitle"></b><span><button class="btn small stop" id="cstop">■ Stop</button> <button class="btn small" id="cclose">Close</button></span></div>
     <pre id="clines"></pre>
     <div class="heard" id="cheard" hidden></div>
   </div>
@@ -247,7 +253,7 @@ details summary { cursor: pointer; color: var(--text-2); font-size: .95rem; marg
 
   <section class="panel" data-panel="forms">
     <div class="card" style="margin-bottom:14px">
-      <b>Pick a form by saying its name.</b> Start the recording with <code>OSHA form</code>, <code>South Dakota form</code> or <code>Mishap</code> and only that form is filled, with only its questions asked. Say none of them and every form that fits the story is filled.
+      <b>Pick a form by saying its name.</b> Start the recording with <code>OSHA form 301</code> or <code>Mishap</code> and only that form is filled, with only its questions asked. Say none of them and every form that fits the story is filled.
     </div>
     <div class="grid" id="formCards2"></div>
   </section>
@@ -354,29 +360,45 @@ function post(path, body) {
   return fetch(path, {method: "POST", headers: {"X-VFF-Token": TOKEN, "Content-Type": "application/json"}, body: JSON.stringify(body || {})})
     .then(r => r.json());
 }
-function run(name, choice) {
-  post(`/run/${name}`, {choice: choice || ""}).then(j => { toast(j.message); if (j.ok && BUTTONS_WITH_OUTPUT.has(name)) openConsole(); })
+function run(name, choice, file) {
+  post(`/run/${name}`, {choice: choice || "", file: file || ""}).then(j => { toast(j.message); if (j.ok && BUTTONS_WITH_OUTPUT.has(name)) openConsole(); })
     .catch(gone);
 }
-const BUTTONS = [["record", "🎙", "Record a report", "primary"], ["live-test", "🗣", "Spoken test"], ["typed-test", "⌨", "Typed test (no microphone)"],
-                 ["excel", "📊", "Open the Excel tracker"], ["records", "📁", "Open the records folder"]];
-const BUTTONS_WITH_OUTPUT = new Set(["record", "live-test", "typed-test"]);
+// a recording made elsewhere (a phone's voice memo): send the file to the server, then run on it
+function runMemo(choice) {
+  const file = document.getElementById("memoFile")?.files[0];
+  if (!file) { toast("Pick the recording first (the file from your phone)."); return; }
+  toast(`Sending ${file.name}…`);
+  fetch("/upload", {method: "POST", headers: {"X-VFF-Token": TOKEN, "X-VFF-Name": file.name, "Content-Type": "application/octet-stream"}, body: file})
+    .then(r => r.json()).then(j => { if (!j.ok) { toast(j.message); return; } run("memo", choice, j.file); })
+    .catch(gone);
+}
+const BUTTONS = [["record", "🎙", "Record a report", "primary"], ["memo", "📱", "Use a recording from your phone"], ["live-test", "🗣", "Spoken test"],
+                 ["typed-test", "⌨", "Typed test (no microphone)"], ["excel", "📊", "Open the Excel tracker"], ["records", "📁", "Open the records folder"]];
+const BUTTONS_WITH_OUTPUT = new Set(["record", "memo", "live-test", "typed-test"]);
+const FORM_CHIPS = [...[...DATA.forms].sort((a, b) => (a.status !== "approved") - (b.status !== "approved")).map(f => [f.id, f.title]), ["any", "Any — every form that fits the story"]];
 // what each button asks before it starts: the form to fill, or the script to read
 const PICKS = {
-  record: {q: "Which form? Click it — or click \"Say it\" and name the form out loud to start.", chips: [...[...DATA.forms].sort((a, b) => (a.status !== "approved") - (b.status !== "approved")).map(f => [f.id, f.title]), ["any", "Any — every form that fits the story"], ["voice", "🎤 Say it — \"OSHA form 301\", \"South Dakota form\" or \"Mishap\" starts the recording"]]},
+  record: {q: "Which form?", chips: [...FORM_CHIPS, ["voice", `🎤 Say it — ${DATA.forms.map(f => `"${f.say[0]}"`).join(" or ")} starts the recording`]]},
+  memo: {q: "Pick the recording (get it onto this computer first — AirDrop, email it to yourself, or a cable), then click the form.", file: true, chips: FORM_CHIPS},
   "live-test": {q: "Which script will you read?", chips: DATA.scripts.map(s => [String(s.n), `${s.n} · ${s.title}`])},
   "typed-test": {q: "Which script?", chips: [...DATA.scripts.map(s => [String(s.n), `${s.n} · ${s.title}`]), ["all", "All of them"]]},
 };
 document.getElementById("actions").innerHTML = CAN_RUN
-  ? BUTTONS.map(([n, ic, label, cls]) => `<button class="btn ${cls || ""}" data-pick="${n}"><span class="ic">${ic}</span>${esc(label)}</button>`).join("") + `<span class="hint">Everything runs right here — no other window opens.</span>`
+  ? BUTTONS.map(([n, ic, label, cls]) => `<button class="btn ${cls || ""}" data-pick="${n}"><span class="ic">${ic}</span>${esc(label)}</button>`).join("")
   : `<span class="hint">To get click-to-run buttons here, start the page with <code>uv run dashboard</code>.</span>`;
 const picker = document.getElementById("picker");
 function showPicker(name) {
   const pick = PICKS[name];
   if (!pick) { run(name); return; }
   picker.hidden = false;
-  picker.innerHTML = `<div class="q">${esc(pick.q)}</div><div class="chips">${pick.chips.map(([v, label]) => `<button class="btn small" data-choice="${esc(v)}">${esc(label)}</button>`).join("")}</div>`;
-  picker.querySelectorAll("[data-choice]").forEach(b => b.addEventListener("click", () => { run(name, b.dataset.choice); if (name !== "record") showPicker("record"); }));
+  const fileBox = pick.file ? `<p class="file"><input type="file" id="memoFile" accept="${DATA.file_types.join(",")}"> <span class="hint">voice memo, video or text file — it stays on this computer</span></p>` : "";
+  picker.innerHTML = `<div class="q">${esc(pick.q)}</div>${fileBox}<div class="chips">${pick.chips.map(([v, label]) => `<button class="btn small" data-choice="${esc(v)}">${esc(label)}</button>`).join("")}</div>`;
+  picker.querySelectorAll("[data-choice]").forEach(b => b.addEventListener("click", () => {
+    if (pick.file) { runMemo(b.dataset.choice); return; }
+    run(name, b.dataset.choice);
+    if (name !== "record") showPicker("record");
+  }));
   picker.querySelector("[data-choice='voice']")?.classList.add("primary");
 }
 document.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => showPicker(b.dataset.pick)));
@@ -389,7 +411,14 @@ const consoleCard = document.getElementById("console"), clines = document.getEle
 let shownLines = 0, consoleRun = "";
 function openConsole() { consoleCard.classList.add("on"); }
 document.getElementById("cclose").addEventListener("click", () => consoleCard.classList.remove("on"));
-document.getElementById("cstop").addEventListener("click", () => post("/stop").then(j => toast(j.message)).catch(gone));
+// the kill switch: ends the run and throws away what it saved; the form choice comes back so it can be redone
+const stopButtons = [document.getElementById("pstop"), document.getElementById("cstop")];
+function stopRun() {
+  stopButtons.forEach(b => b.disabled = true);
+  post("/stop").then(j => { toast(j.message); showPicker("record"); }).catch(gone)
+    .finally(() => stopButtons.forEach(b => b.disabled = false));
+}
+stopButtons.forEach(b => b.addEventListener("click", stopRun));
 function drawOutput(o) {
   if (!o.title) return;
   const key = `${o.title}@${o.started}`;
@@ -402,7 +431,7 @@ function drawOutput(o) {
     const heard = clines.textContent.match(/What I heard:\n\s*(.+)/);
     if (heard) { const h = document.getElementById("cheard"); h.hidden = false; h.innerHTML = `<b>What it heard:</b> ${esc(heard[1])}`; }
   }
-  document.getElementById("ctitle").textContent = o.running ? `${o.title} — running since ${o.started}` : `${o.title} — finished${o.exit ? ` (stopped, code ${o.exit})` : ""}`;
+  document.getElementById("ctitle").textContent = o.running ? `${o.title} — running since ${o.started}` : `${o.title} — ${o.exit ? "stopped" : "finished"}`;
   document.getElementById("cstop").hidden = !o.running;
 }
 document.getElementById("reportCount").textContent = reports.length || "";
@@ -559,6 +588,7 @@ function drawProgress(p) {
   document.getElementById("pmsg").textContent = stalled ? `${p.message} — no news for ${Math.round(p.age / 60)} min; see the output below` : p.message;
   document.getElementById("ptime").textContent = running ? `${p.percent}% · ${mmss(p.updated - p.started + p.age)}` : p.step === "done" ? `took ${mmss(p.updated - p.started)}` : "";
   document.getElementById("pfill").style.width = `${p.step === "stopped" ? 100 : p.percent}%`;
+  document.getElementById("pstop").hidden = !running;
   const names = (p.steps || []).map(st => st[0]), at = names.indexOf(p.step);
   document.getElementById("psteps").innerHTML = (p.steps || []).map(([name, label], i) =>
     `<li class="${i < at || p.step === "done" ? "past" : i === at ? "now" : ""}">${esc(label)}</li>`).join("");
@@ -598,7 +628,7 @@ if (CAN_RUN) {
 setInterval(() => { if (!running) location.reload(); }, 30000);
 
 // ---- navigation: the page remembers where you were through the auto-reload
-const TITLES = {overview: ["Overview", "One recording → every safety form that applies, filled, saved and tracked. Nothing leaves this computer."],
+const TITLES = {overview: ["Overview", ""],
   reports: ["Reports", "Every report filed with the app, newest first. Open PDF shows the printed copy."],
   forms: ["Forms", "The forms the app can fill today, and the words that pick each one."],
   accuracy: ["Score & fixes", "How many checked boxes the latest test of each script got right, and what is still wrong."],

@@ -10,6 +10,7 @@ records/
 
 import json
 import os
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -40,6 +41,31 @@ def _summary(fields: dict[str, dict]) -> dict[str, str]:
         for key, f in fields.items()
         if f.get("value") and f.get("check") != "unsupported"
     }
+
+
+def delete_record(records_dir: Path, name: str) -> bool:
+    """Throw away the record folder `name` and its index line — a run stopped before it finished. True if it was there."""
+    records_dir = Path(records_dir)
+    folder = records_dir / name
+    if not name or "/" in name or name in (".", "..") or not folder.is_dir():
+        return False
+    shutil.rmtree(folder)
+    index = records_dir / INDEX_NAME
+    if index.is_file():
+        kept = [line for line in index.read_text(encoding="utf-8").splitlines() if _entry_id(line) != name]
+        tmp = index.with_suffix(".tmp")
+        tmp.write_text("".join(f"{line}\n" for line in kept), encoding="utf-8")
+        tmp.chmod(FILE_MODE)
+        os.replace(tmp, index)
+    return True
+
+
+def _entry_id(line: str) -> str:
+    try:
+        entry = json.loads(line)
+    except ValueError:
+        return ""
+    return str(entry.get("id", "")) if isinstance(entry, dict) else ""
 
 
 def save_record(

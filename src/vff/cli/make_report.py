@@ -68,7 +68,9 @@ def get_transcript(args, template) -> tuple[str, str]:
 def print_answers(template, answers: dict[str, dict]) -> None:
     print(f"\n=== {template.title} ===")
     for field in template.fields:
-        a = answers[field.key]
+        a = answers.get(field.key)
+        if a is None:
+            continue  # a fact group not needed for the named form has no answers
         if a["value"]:
             print(f"{MARKS[a['check']]} {field.label}: {a['value']}")
             if a["check"] == "check":
@@ -139,6 +141,7 @@ def file_report(transcript: str, source: str, model: str, profile: dict[str, str
     now = datetime.now()
     folder = save_record(records_dir, name, facts_template.title, transcript, answers, source,
                          "filled (not read back)", now)
+    progress.writing(report=folder.name)
     if verbose:
         print(f"\nFilling {len(forms)} form(s): {', '.join(f.id for f in forms)}")
     progress.step("fill", f"Filling {len(forms)} form(s)…")

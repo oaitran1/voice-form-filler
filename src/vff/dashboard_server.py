@@ -1,11 +1,12 @@
-"""Serve the dashboard on this Mac only (127.0.0.1), so its buttons can run the app with a click — no Terminal window.
+"""Serve the dashboard on this computer only (127.0.0.1), so its buttons can run the app with a click.
 
     GET  /                     the page, rebuilt from records/ and live_test/results/ on every load
     GET  /records/<r>/<f>.pdf  a filled PDF from records/
     GET  /progress             where the current run is (data_tracker/progress.json), for the progress bar
     GET  /output?since=N       what the running command has printed so far (line N onwards)
+    POST /upload               saves a recording from the browser (a phone's voice memo) in data/uploads/
     POST /run/<button>         runs that button's command as a hidden process (the fixed list below) — nothing else
-    POST /stop                 stops the running command
+    POST /stop                 the kill switch: ends the run now and throws away what it had saved so far
 
 record and live-test use the microphone and speak through the speakers like before; only their words come to the
 page instead of a Terminal window. One command runs at a time. Every POST must carry the page's own one-time token,
@@ -17,6 +18,8 @@ import json
 import os
 import re
 import secrets
+import shutil
+import signal
 import subprocess
 import sys
 import threading
@@ -30,10 +33,13 @@ from urllib.parse import parse_qs, urlsplit
 
 from vff import progress
 from vff.dashboard import load_reports, load_runs, render
-from vff.export_excel import WORKBOOK
+from vff.export_excel import WORKBOOK, rebuild_workbook
 from vff.forms import load_forms
-from vff.live_test import load_scripts
-from vff.paths import DATA_TRACKER_DIR, RECORDS_DIR, ROOT
+from vff.live_test import RESULTS_DIR, load_scripts
+from vff.media import AUDIO_VIDEO_TYPES, TEXT_TYPES
+from vff.paths import DATA_DIR, DATA_TRACKER_DIR, RECORDS_DIR, ROOT
+from vff.records import delete_record
+from vff.storage import FILE_MODE, private_folder
 from vff.system import show
 
 HOST, PORT = "127.0.0.1", 8631
@@ -42,9 +48,11 @@ SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")  # a record folder or PD
 KEEP_LINES = 400  # of a command's output, for the page
 RUNS_LOG = DATA_TRACKER_DIR / "runs.log"  # everything every run printed, kept so a failed run can be read later
 STOP_WAIT_SECONDS = 5
+UPLOADS_DIR = DATA_DIR / "uploads"  # recordings sent from the browser (private, gitignored with data/)
+MAX_UPLOAD_BYTES = 500 * 1024 * 1024  # a two-hour phone recording is well under this
 
 
-def _record_command(choice: str) -> list[str]:
+def _record_command(choice: str, _file: str = "") -> list[str]:
     """`choice` = a form id, "any" for every form that fits, or "voice" to start when a form's name is said."""
     ids = {f.id for f in load_forms()}
     if choice not in ("any", "voice") and choice not in ids:
@@ -52,7 +60,33 @@ def _record_command(choice: str) -> list[str]:
     return [sys.executable, "-m", "vff.cli.record", "--form", choice, "--no-open"]
 
 
-def _test_command(choice: str, typed: bool) -> list[str]:
+def _memo_command(choice: str, file: str) -> list[str]:
+    """A recording uploaded to data/uploads/ (`file` = its saved name) → the same report as a live one.
+    `choice` = a form id or "any"."""
+    ids = {f.id for f in load_forms()}
+    if choice != "any" and choice not in ids:
+        raise ValueError(f"unknown form {choice!r}")
+    if not SAFE_NAME.match(file) or not (UPLOADS_DIR / file).is_file():
+        raise ValueError("the recording wasn't uploaded — pick the file again")
+    command = [sys.executable, "-m", "vff.cli.make_report", "--input", str(UPLOADS_DIR / file)]
+    return command + (["--forms", choice] if choice != "any" else [])
+
+
+def save_upload(name: str, data: bytes) -> str:
+    """Keep a recording sent from the browser as data/uploads/<time>_<name> (owner-only). Returns the saved name."""
+    suffix = Path(name).suffix.lower()
+    if suffix not in TEXT_TYPES | AUDIO_VIDEO_TYPES:
+        raise ValueError(f"{suffix or 'that'} isn't a recording or text file the app can read")
+    plain = re.sub(r"[^A-Za-z0-9_.-]+", "_", Path(name).stem).strip("._-")[:60] or "recording"
+    saved = f"{datetime.now():%Y-%m-%d_%H%M%S}_{plain}{suffix}"
+    private_folder(UPLOADS_DIR)
+    fd = os.open(UPLOADS_DIR / saved, os.O_WRONLY | os.O_CREAT | os.O_EXCL, FILE_MODE)
+    with os.fdopen(fd, "wb") as out:
+        out.write(data)
+    return saved
+
+
+def _test_command(choice: str, typed: bool, _file: str = "") -> list[str]:
     """`choice` = a script number, or "all"."""
     command = [sys.executable, "-m", "vff.cli.live_test", "--no-open"] + (["--typed"] if typed else [])
     if choice != "all":
@@ -67,15 +101,16 @@ def _test_command(choice: str, typed: bool) -> list[str]:
 @dataclass(frozen=True)
 class Button:
     title: str
-    command: Callable[[str], list[str]] | None = None  # choice -> argv for a command run in the background
+    command: Callable[[str, str], list[str]] | None = None  # (choice, uploaded file) -> argv run in the background
     opens: Path | None = None  # a file or folder to open instead
     message: str = ""  # shown on the page after the click
 
 
 BUTTONS = {
     "record": Button("Record a report", _record_command, message="Listening — tell what happened. Say \"stop recording\" when you're done."),
-    "live-test": Button("Spoken test", lambda c: _test_command(c, typed=False), message="Spoken test started — read the script out loud; its first words start the recording."),
-    "typed-test": Button("Typed test", lambda c: _test_command(c, typed=True), message="Typed test running; this page follows along."),
+    "memo": Button("Recording from a file", _memo_command, message="Reading the recording — this page follows along."),
+    "live-test": Button("Spoken test", lambda c, f: _test_command(c, typed=False), message="Spoken test started — read the script out loud; its first words start the recording."),
+    "typed-test": Button("Typed test", lambda c, f: _test_command(c, typed=True), message="Typed test running; this page follows along."),
     "excel": Button("Excel tracker", opens=WORKBOOK, message="Opening the Excel tracker."),
     "records": Button("Records folder", opens=RECORDS_DIR, message="Opening the records folder."),
 }
@@ -114,12 +149,57 @@ class Run:
                 "started": self.started.strftime("%H:%M:%S"), "lines": lines, "total": total}
 
     def stop(self) -> None:
-        if self.alive:
-            self.process.terminate()
-            try:
-                self.process.wait(STOP_WAIT_SECONDS)
-            except subprocess.TimeoutExpired:
-                self.process.kill()
+        """End the run and everything it started (the spoken prompts, ffmpeg): they share one process group."""
+        if not self.alive:
+            return
+        _signal_group(self.process.pid, signal.SIGTERM)
+        try:
+            self.process.wait(STOP_WAIT_SECONDS)
+        except subprocess.TimeoutExpired:
+            _signal_group(self.process.pid, signal.SIGKILL)
+            self.process.wait()
+
+
+def _signal_group(pid: int, sig: int) -> None:
+    """Send `sig` to the run's whole process group (Mac/Linux), or end the one process (Windows)."""
+    try:
+        if hasattr(os, "killpg"):
+            os.killpg(pid, sig)
+        else:
+            os.kill(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass  # already gone
+
+
+def _terminal_run_pid(state: dict) -> int:
+    """The pid of a run started from a terminal (`uv run record`) that progress.json says is still going — only
+    when that process really is this app, so a reused pid is never touched. 0 when there is none."""
+    pid = int(state.get("pid") or 0)
+    if not pid or state.get("step") in ("", "done", progress.STOPPED) or not hasattr(os, "killpg"):
+        return 0
+    try:
+        command = subprocess.run(["ps", "-o", "command=", "-p", str(pid)], capture_output=True, text=True, timeout=5, check=False).stdout
+    except (OSError, subprocess.SubprocessError):
+        return 0
+    return pid if str(ROOT) in command else 0
+
+
+def discard(state: dict) -> str:
+    """Throw away what a stopped run had saved so far — its records/ folder (and its line in the index, and the Excel
+    row) or its live_test/results/ folder. Returns what went, or '' when nothing was saved yet."""
+    if state.get("step") in ("", "done", progress.STOPPED):
+        return ""
+    report, run = str(state.get("report", "")), str(state.get("run", ""))
+    if state.get("kind") == "test" and SAFE_NAME.match(run) and (RESULTS_DIR / run).is_dir():
+        shutil.rmtree(RESULTS_DIR / run)
+        return f"threw away live_test/results/{run}"
+    if state.get("kind") in ("report", "file") and SAFE_NAME.match(report) and delete_record(RECORDS_DIR, report):
+        try:
+            rebuild_workbook(RECORDS_DIR)  # the Excel file matches the saved reports again
+        except (OSError, ValueError) as err:
+            print(f"  ⚠ the Excel file wasn't rebuilt ({err}); run `uv run add-old-pdfs` to catch up", flush=True)
+        return f"threw away records/{report}"
+    return ""
 
 
 class Runner:
@@ -129,8 +209,8 @@ class Runner:
         self.current: Run | None = None
         self.lock = threading.Lock()
 
-    def start(self, name: str, choice: str) -> str:
-        """Press `name` with `choice`; returns the message for the page."""
+    def start(self, name: str, choice: str, file: str = "") -> str:
+        """Press `name` with `choice` (and, for a recording from a file, its uploaded name); returns the message."""
         button = BUTTONS[name]
         if button.opens is not None:
             if not button.opens.exists():
@@ -139,14 +219,15 @@ class Runner:
             return button.message
         if button.command is None:
             raise ValueError("this button opens nothing and runs nothing")
-        argv = button.command(choice)
+        argv = button.command(choice, file)
         with self.lock:
             if self.current is not None and self.current.alive:
                 raise RuntimeError(f"{self.current.title} is still running — stop it first")
             process = subprocess.Popen(argv, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT, text=True, errors="replace", bufsize=1,
-                                       env={**os.environ, "PYTHONUNBUFFERED": "1"})
+                                       env={**os.environ, "PYTHONUNBUFFERED": "1"}, start_new_session=True)
             label = button.title if choice in ("any", "all") else f"{button.title} — {'by voice' if choice == 'voice' else choice}"
+            label = f"{button.title} — {file}" if file else label
             self.current = Run(name, label, process, datetime.now())
             threading.Thread(target=self.current._read, daemon=True).start()
         return button.message
@@ -155,12 +236,20 @@ class Runner:
         return self.current.snapshot(since) if self.current else {"running": False, "lines": [], "total": 0}
 
     def stop(self) -> str:
+        """The kill switch: end the run now — one started here, or from a terminal — and save nothing from it."""
+        state = progress.read()
         run = self.current
-        if run is None or not run.alive:
+        if run is not None and run.alive:
+            run.stop()
+            title = run.title
+        elif (pid := _terminal_run_pid(state)):
+            _signal_group(pid, signal.SIGTERM)
+            title = "The run in the terminal"
+        else:
             return "Nothing is running."
-        run.stop()
-        progress.fail("Stopped from the dashboard")
-        return f"{run.title} stopped."
+        gone = discard(state)
+        progress.fail("Stopped — nothing saved" + (f" ({gone})" if gone else ""))
+        return f"{title} stopped. Nothing saved" + (f" — {gone}." if gone else ".")
 
 
 RUNNER = Runner()
@@ -225,15 +314,32 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/stop":
             self._json(200, ok=True, message=RUNNER.stop())
             return
+        if path == "/upload":
+            self._upload()
+            return
         name = path.removeprefix("/run/")
         if name not in BUTTONS:
             self._json(404, ok=False, message="Unknown button.")
             return
-        choice = str(self._body().get("choice", "")).strip()[:40]
+        body = self._body()
+        choice, file = str(body.get("choice", "")).strip()[:40], str(body.get("file", "")).strip()[:120]
         try:
-            self._json(200, ok=True, message=RUNNER.start(name, choice))
+            self._json(200, ok=True, message=RUNNER.start(name, choice, file))
         except (OSError, ValueError, RuntimeError) as err:
             self._json(409 if isinstance(err, RuntimeError) else 500, ok=False, message=f"Couldn't do that: {err}")
+
+    def _upload(self) -> None:
+        """The request body is the recording; X-VFF-Name is its file name."""
+        length = int(self.headers.get("Content-Length", "0") or 0)
+        if not 0 < length <= MAX_UPLOAD_BYTES:
+            self._json(413, ok=False, message="That file is empty or too big (the limit is 500 MB).")
+            return
+        try:
+            saved = save_upload(self.headers.get("X-VFF-Name", ""), self.rfile.read(length))
+        except (OSError, ValueError) as err:
+            self._json(400, ok=False, message=f"Couldn't keep the recording: {err}")
+            return
+        self._json(200, ok=True, file=saved, message=f"Got {saved}.")
 
     def log_message(self, fmt, *args) -> None:  # one short line per click, silence for page loads
         if self.command == "POST":
@@ -251,9 +357,16 @@ def _bind(port: int) -> ThreadingHTTPServer:
     raise OSError(f"ports {port}–{port + PORT_TRIES - 1} are all in use")
 
 
+def _end(signum, frame) -> None:
+    raise KeyboardInterrupt  # `uv run dashboard --stop` sends SIGTERM: leave the same way as Ctrl-C
+
+
 def serve(port: int = PORT, open_page: bool = True) -> None:
-    """Run until Ctrl-C. The page's buttons work only while this runs."""
+    """Run until Ctrl-C or `uv run dashboard --stop`. The page's buttons work only while this runs."""
     Handler.token = secrets.token_hex(16)
+    signal.signal(signal.SIGTERM, _end)
+    if hasattr(signal, "SIGHUP"):
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)  # the window it was started from may close; keep going
     server = _bind(port)
     url = f"http://{HOST}:{server.server_address[1]}/"
     print(f"Dashboard at {url} (this Mac only). Ctrl-C stops it.", flush=True)

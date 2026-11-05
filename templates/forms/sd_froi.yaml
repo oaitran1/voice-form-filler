@@ -7,7 +7,7 @@ applies_when:
 - Injury
 - Fatality
 say: [South Dakota form, SD form, first report of injury]
-status: approved
+status: "off"  # switched off 2026-11-05 (Oai: OSHA 301 and Mishap only); set back to approved to offer it again
 boxes:
 - box: Item.BPI
   fact: body_parts

@@ -3,8 +3,9 @@
 You tell what happened — out loud or from a voice memo — and the app does the rest:
 
 1. **Records** your story and turns it into text.
-2. **Fills the safety forms** from it: **OSHA 301** and the **South Dakota Employer's First Report of Injury** —
-   or, for a military story (a ship, unit or base), the **Mishap Information Worksheet** (Navy / DoD, AFSAS-style).
+2. **Fills the safety form** from it: **OSHA 301** — or, for a military story (a ship, unit or base), the
+   **Mishap Information Worksheet** (Navy / DoD, AFSAS-style). (A South Dakota First Report of Injury map is kept
+   in `templates/forms/` switched off; set its `status:` to `approved` to offer it too.)
 3. **Saves** the filled PDFs.
 4. **Adds the report to one Excel file** (`data_tracker/reports.xlsx`) — one row per report, one column per box.
 
@@ -95,7 +96,8 @@ uv run record
 3. Say **"stop recording"**.
 4. Check **What I heard** on the screen. The app fills the forms (about a minute), saves them, adds the report to
    the Excel file and opens the filled forms. (With `uv run dashboard` open, a progress bar follows each step there
-   and the filled form appears on its Reports page by itself.)
+   and the filled form appears on its Reports page by itself. Changed your mind? Click the red **Stop — save
+   nothing** button: the run ends at once, anything it had saved is thrown away, and you can record again.)
 5. Look over each form (`*_print.pdf`). Boxes marked "pick by hand" on the screen need you. If a box is wrong,
    fix it in the editable copy `*_filled.pdf` and print or send that one instead.
 
@@ -138,9 +140,9 @@ latest run — kept apart from your real reports). Your recordings stay on your 
 
 | Other things it can do | Command |
 |---|---|
-| **Use a voice memo, video, or text file** | `uv run make-report --input ~/Downloads/incident.m4a` |
+| **Use a recording from your phone** (a voice memo, video, or text file) — get the file onto this computer first (AirDrop, email it to yourself, or a cable), then on the dashboard click **Use a recording from your phone**, pick the file and the form | or `uv run make-report --input ~/Downloads/incident.m4a` |
 | What to say before you record | `uv run make-report --brief` |
-| The dashboard: reports filed, the forms, live-test accuracy, and buttons that run each step right on the page (pick the form, talk, watch the progress bar, see what was heard and the filled form — no other window opens). Start it once from a terminal so the microphone is allowed; Ctrl-C stops it. `--write` only writes `data_tracker/dashboard.html` | `uv run dashboard` |
+| The dashboard: reports filed, the forms, live-test accuracy, and buttons that run each step right on the page. (pick the form, talk, watch the progress bar, see what was heard and the filled form — no other window opens; **Stop — save nothing** kills a run and throws away what it saved). Start it from a terminal (that is how it gets microphone permission); it keeps running after the window is closed. `uv run dashboard --stop` stops it; `--write` only writes `data_tracker/dashboard.html` | `uv run dashboard` |
 | **Bring in old filled PDFs** (once) | `uv run add-old-pdfs ~/old_reports` |
 
 **Start each recording with who is making the report**, e.g. *"This report is by Sam Park, Kitchen Manager,
@@ -162,9 +164,9 @@ skipped. Run `uv run add-old-pdfs` with nothing after it to just rebuild the Exc
 
 ## What to say (in this order)
 
-Say it in your own words — this order covers every box on OSHA 301 and the SD form.
+Say it in your own words — this order covers every box on OSHA 301.
 
-0. **Which form** — `uv run record` asks this first: say **"OSHA form 301"**, **"South Dakota form"** or **"Mishap"**
+0. **Which form** — `uv run record` asks this first: say **"OSHA form 301"** or **"Mishap"**
    (or **"any"**, or type its number). Naming the form starts the recording — no Enter needed. On the dashboard,
    click the form's button, or click **Say it** and the recording starts the moment you name the form out loud.
    Naming a form in the story itself works too, and only that form is
