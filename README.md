@@ -136,6 +136,16 @@ by itself) with the filled PDFs and `RESULTS.md`: every box, what it should be, 
 ✓ right / ✗ wrong / 👁 written answers to read yourself. Its Excel file is `data_tracker/live_test.xlsx` (the
 latest run — kept apart from your real reports). Your recordings stay on your Mac, out of git.
 
+## With the DON Mishap Classification Assistant
+
+If the assistant's page is in `assets/voice-rmi.html`, `uv run dashboard` opens one page with two tabs: **Voice RMI
+Assistant** (the assistant, unchanged) and **Reporting Dashboard** (this app). The dashboard tab also has **Browser
+voice recording**: pick the form, click **Start recording**, allow the microphone, tell what happened, click **Stop &
+process**. The recording goes to the local server and through the same steps as a voice memo; the dashboard below
+follows along and shows the filled form. (That works in Edge and Chrome; the dashboard's own **Record a report**
+button works everywhere the server was started from a terminal.) Without the assistant file, `uv run dashboard`
+shows the dashboard alone. Nothing leaves the computer either way.
+
 ## More about using it
 
 | Other things it can do | Command |

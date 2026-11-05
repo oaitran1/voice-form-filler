@@ -15,3 +15,6 @@ live_test/results/
 # private working notes — stay on this computer
 docs/HANDOFF.md
 docs/DESIGN.md
+
+# the DON Mishap Classification Assistant page is shared by hand, not through GitHub
+assets/voice-rmi.html

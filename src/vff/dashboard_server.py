@@ -1,6 +1,9 @@
 """Serve the dashboard on this computer only (127.0.0.1), so its buttons can run the app with a click.
 
-    GET  /                     the page, rebuilt from records/ and live_test/results/ on every load
+    GET  /                     the page, rebuilt from records/ and live_test/results/ on every load — or, when
+                               assets/voice-rmi.html is there, the two-tab page (assistant + dashboard)
+    GET  /assistant            the DON Mishap Classification Assistant page, served as it is
+    GET  /dashboard            this app's dashboard (the page the two-tab page shows in its second tab)
     GET  /records/<r>/<f>.pdf  a filled PDF from records/
     GET  /progress             where the current run is (data_tracker/progress.json), for the progress bar
     GET  /output?since=N       what the running command has printed so far (line N onwards)
@@ -32,6 +35,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from vff import progress
+from vff.combined_page import combined_html
 from vff.dashboard import load_reports, load_runs, render
 from vff.export_excel import WORKBOOK, rebuild_workbook
 from vff.forms import load_forms
@@ -44,6 +48,7 @@ from vff.system import show
 
 HOST, PORT = "127.0.0.1", 8631
 PORT_TRIES = 10  # if the port is taken by another program, the next ones are tried
+ASSISTANT_PAGE = ROOT / "assets" / "voice-rmi.html"  # the DON assistant; when present, / shows both apps in tabs
 SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")  # a record folder or PDF name; no slashes
 KEEP_LINES = 400  # of a command's output, for the page
 RUNS_LOG = DATA_TRACKER_DIR / "runs.log"  # everything every run printed, kept so a failed run can be read later
@@ -279,7 +284,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # the name http.server expects
         url = urlsplit(self.path)
-        if url.path in ("/", "/index.html"):
+        if url.path in ("/", "/index.html") and ASSISTANT_PAGE.is_file():
+            page = combined_html(self.token, [(f.id, f.title) for f in load_forms()])
+            self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
+            return
+        if url.path == "/assistant":
+            if not ASSISTANT_PAGE.is_file():
+                self._send(404, b"assets/voice-rmi.html is not there", "text/plain")
+                return
+            self._send(200, ASSISTANT_PAGE.read_bytes(), "text/html; charset=utf-8")
+            return
+        if url.path in ("/", "/index.html", "/dashboard"):
             page = render(load_runs(), load_reports(), token=self.token)
             self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
             return
