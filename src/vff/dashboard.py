@@ -137,7 +137,6 @@ class ReportForm:
     filled: int
     to_check: int  # boxes with a note + boxes to fill by hand
     print_pdf: str  # file name inside the record folder, "" if the file is gone
-    editable_pdf: str
 
 
 @dataclass(frozen=True)
@@ -168,12 +167,11 @@ def load_reports(records_dir: Path = RECORDS_DIR) -> list[Report]:
         for entry in _read_json(folder / "forms.json") or []:
             if not isinstance(entry, dict) or not entry.get("form"):
                 continue
-            printed, editable = str(entry.get("print_pdf", "")), str(entry.get("editable_pdf", ""))
+            printed = str(entry.get("print_pdf", ""))
             forms.append(ReportForm(
                 str(entry["form"]), titles.get(str(entry["form"]), str(entry["form"])), int(entry.get("filled", 0)),
                 len(entry.get("notes") or []) + len(entry.get("by_hand") or []) + len(entry.get("missing") or []),
-                printed if printed and (folder / printed).is_file() else "",
-                editable if editable and (folder / editable).is_file() else ""))
+                printed if printed and (folder / printed).is_file() else ""))
         try:
             story = " ".join((folder / "transcript.txt").read_text(encoding="utf-8").split())
         except OSError:
@@ -195,7 +193,7 @@ def _data(runs: list[Run], reports: list[Report]) -> dict:
         "reports": [
             {"id": r.id, "created": r.created, "source": r.source, "story": r.story,
              "forms": [{"form": f.form, "title": f.title, "filled": f.filled, "to_check": f.to_check,
-                        "print_pdf": f.print_pdf, "editable_pdf": f.editable_pdf} for f in r.forms]}
+                        "print_pdf": f.print_pdf} for f in r.forms]}
             for r in reports],
         "runs": [
             {

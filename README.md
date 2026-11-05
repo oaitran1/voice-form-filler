@@ -99,7 +99,7 @@ uv run record
    and the filled form appears on its Reports page by itself. Changed your mind? Click the red **Stop — save
    nothing** button: the run ends at once, anything it had saved is thrown away, and you can record again.)
 5. Look over each form (`*_print.pdf`). Boxes marked "pick by hand" on the screen need you. If a box is wrong,
-   fix it in the editable copy `*_filled.pdf` and print or send that one instead.
+   fix it on the printed page, or record the report again.
 
 **Where everything is:** each report → `records/<date>_incident/` (the filled PDFs + what was heard). Every report in
 one Excel file → `data_tracker/reports.xlsx`.
@@ -151,8 +151,9 @@ The company's own details (employer name, address, tax ID) come from `data/profi
 To report for another company, say its name in the recording (e.g. *"We are Acme Plumbing, 5 Main Street,
 Sioux Falls…"*): then only what you say about that company is used, and the profile is left out.
 
-Each story is saved in `records/<date>_incident/`: the transcript, the facts, and for every form an editable
-`*_filled.pdf` and a `*_print.pdf`. Answers you didn't say are left blank — never guessed.
+Each story is saved in `records/<date>_incident/`: the transcript, the facts, and for every form its `*_print.pdf`
+plus `*_boxes.json` (every box's answer, which the Excel file is built from). Answers you didn't say are left
+blank — never guessed.
 
 **The Excel file** `data_tracker/reports.xlsx` has one sheet per form. Row 1 = the form's section titles, row 2 = its
 printed labels, then one row per report. The **Source** column says *spoken report* or *old PDF*; **File** says

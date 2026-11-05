@@ -13,7 +13,7 @@ from pathlib import Path
 import yaml
 
 from vff.boxes import read_boxes
-from vff.export_excel import Layout, _answered, _cell, load_layouts, read_pdf
+from vff.export_excel import BOXES_SUFFIX, Layout, _answered, _cell, load_layouts, read_answers
 from vff.forms import FormMap, applies, form_values, forms_said, load_forms
 from vff.incident import spoken_templates, with_company
 from vff.paths import DATA_TRACKER_DIR, ROOT, TEMPLATES_DIR
@@ -82,8 +82,8 @@ def _same(a: str, b: str) -> bool:
     return norm(a) == norm(b)
 
 
-def _check_form(form: FormMap, expected: dict[str, str], pdf: Path | None, layout: Layout | None) -> FormCheck:
-    got = read_pdf(pdf) if pdf else {}
+def _check_form(form: FormMap, expected: dict[str, str], answers: Path | None, layout: Layout | None) -> FormCheck:
+    got = read_answers(answers) if answers else {}
     columns = {c.box: c for c in layout.columns} if layout else {}
     order = list(columns) + [b.box for b in form.boxes if b.box not in columns]
     by_eye = _by_eye_boxes(form)
@@ -98,7 +98,7 @@ def _check_form(form: FormMap, expected: dict[str, str], pdf: Path | None, layou
         verdict = LOOK if box in by_eye else RIGHT if _same(want, have) else WRONG
         checks.append(BoxCheck(column.label if column else box, show(want) if want else "", show(have) if have else "",
                                verdict))
-    return FormCheck(form.title, pdf is not None, tuple(checks))
+    return FormCheck(form.title, answers is not None, tuple(checks))
 
 
 def check_report(script: Script, folder: Path, profile: dict[str, str], today: str) -> list[FormCheck]:
@@ -108,13 +108,13 @@ def check_report(script: Script, folder: Path, profile: dict[str, str], today: s
     named = {f.id for f in forms_said(script.text, load_forms())}
     checks = []
     for form in load_forms():
-        pdf = folder / f"{form.id}_filled.pdf"
+        answers = folder / f"{form.id}{BOXES_SUFFIX}"
         should = form.id in named if named else applies(form, facts)
-        if not should and not pdf.exists():
+        if not should and not answers.exists():
             continue
         boxes = {b.name: b for b in read_boxes(form.pdf_path)}
         expected = form_values(form, facts, boxes, today).values if should else {}
-        checks.append(_check_form(form, expected, pdf if pdf.exists() else None, layouts.get(form.id)))
+        checks.append(_check_form(form, expected, answers if answers.exists() else None, layouts.get(form.id)))
     return checks
 
 
