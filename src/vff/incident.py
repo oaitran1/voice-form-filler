@@ -18,7 +18,7 @@ from vff.formats import apply_formats, format_value
 from vff.forms import FACTS_PATH, FilledForm, FormMap, Picker, form_values
 from vff.grounding import check_answers
 from vff.paths import DATA_DIR
-from vff.pdf_fill import print_pdf
+from vff.pdf_fill import fill_pdf, print_pdf
 from vff.storage import write_new_private_file
 from vff.templates import Template, load_template
 
@@ -34,7 +34,8 @@ class FormResult:
     form: FormMap
     filled: FilledForm
     boxes_file: Path  # every box's answer, as JSON — what the Excel file and the live test read
-    print_pdf: Path
+    print_pdf: Path  # answers drawn on the page; looks the same everywhere
+    filled_pdf: Path  # the editable copy: change an answer in any PDF viewer
 
 
 def story_template(facts_path: Path = FACTS_PATH) -> Template:
@@ -132,8 +133,9 @@ def ai_picker(model: str = DEFAULT_MODEL, client=None) -> Picker:
 
 def fill_forms(forms: list[FormMap], facts: dict[str, str], folder: Path, today: str,
                picker: Picker | None = None, on_form=None) -> list[FormResult]:
-    """Fill every form from the same facts; each gets a print copy in `folder` plus <form>_boxes.json, its answers
-    box by box (blank boxes included). `on_form(i, n, title)` is called before each form (progress)."""
+    """Fill every form from the same facts; each gets a print copy and an editable copy in `folder`, plus
+    <form>_boxes.json, its answers box by box (blank boxes included). `on_form(i, n, title)` is called before each
+    form (progress)."""
     results = []
     for i, form in enumerate(forms):
         if on_form:
@@ -144,5 +146,6 @@ def fill_forms(forms: list[FormMap], facts: dict[str, str], folder: Path, today:
         boxes_file = Path(folder) / f"{form.id}_boxes.json"
         write_new_private_file(boxes_file, json.dumps(answers, indent=1, ensure_ascii=False) + "\n")
         printed = print_pdf(form.pdf_path, filled.values, Path(folder) / f"{form.id}_print.pdf")
-        results.append(FormResult(form, filled, boxes_file, printed))
+        editable = fill_pdf(form.pdf_path, filled.values, Path(folder) / f"{form.id}_filled.pdf")
+        results.append(FormResult(form, filled, boxes_file, printed, editable))
     return results
